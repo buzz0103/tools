@@ -23,17 +23,13 @@ body {display: flex; flex-direction: column; margin: 0; font-family: 'LINE Seed 
 .hdr_home:hover {opacity: .7;}
 .hdr_home:focus-visible {outline: 2px solid #1775F0; outline-offset: 2px;}
 .hdr_actions {display: flex; flex-wrap: wrap; align-items: center; gap: 8px;}
-.steps {display: flex; gap: 4px; margin: 0; padding: 0; list-style: none;}
-.steps button {height: 36px; padding: 0 12px; border: 0; border-radius: 5px; font-size: 14px; font-weight: 500; color: #949494; background: transparent;}
-.steps button[aria-current="step"] {font-weight: 700; color: #1775F0; background: #EEF5FE;}
-.steps_no {display: inline-block; margin-right: 6px; font-variant-numeric: tabular-nums;}
-
 /* ---- 본문 ---- */
-.main {flex: 1 0 auto; width: 100%; max-width: 1040px; margin: 0 auto; padding: 16px;}
+.main {display: grid; flex: 1 0 auto; gap: 16px; width: 100%; max-width: 1040px; margin: 0 auto; padding: 16px 16px 48px;}
 .panel {display: grid; gap: 24px; min-width: 0; padding: 24px; border-radius: 12px; background: #FFFFFF;}
 .panel[hidden] {display: none;}
 .panel_head {display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;}
-.panel h2 {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
+.panel h2 {display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
+.panel_no {display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; line-height: 1; font-weight: 700; color: #FFFFFF; background: #1775F0; font-variant-numeric: tabular-nums;}
 .panel_sub {font-size: 12px; line-height: 16px; font-weight: 500; color: #777777;}
 .count {display: inline-flex; padding: 4px 8px; border-radius: 5px; font-size: 12px; line-height: 16px; font-weight: 500; color: #777777; background: #F5F5F5; font-variant-numeric: tabular-nums;}
 .section_label {margin: 0 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777;}
@@ -65,7 +61,6 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
 .btn:disabled {border-color: #E4E4E4; color: #FFFFFF; background: #E4E4E4; cursor: default;}
 .checkall {cursor: pointer; transition: opacity .15s ease;}
 .checkall:hover {opacity: .7;}
-.nav {display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 24px; border-top: 1px solid #EFEFEF;}
 
 /* ---- 예시 미리보기 · 고급 설정 (구분선 아코디언) ---- */
 .preview-path {margin: 0; padding: 12px 16px; border-radius: 7px; line-height: 20px; white-space: pre; color: #303030; background: #F5F5F5; overflow-x: auto;}
@@ -146,8 +141,6 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
     .filelist {max-height: 220px;}
 }
 @media (max-width: 640px) {
-    #headerZip {display: none;}
-    .steps button {padding: 0 8px; font-size: 13px;}
     .item {grid-template-columns: auto 80px minmax(0, 1fr); gap: 12px;}
     .item .x {grid-column: 3; justify-self: end;}
     .thumb {width: 80px; height: 64px;}
@@ -162,20 +155,15 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
 <header class="hdr">
     <div class="hdr_title"><a class="hdr_home" href="../">도구 모음</a><h1>이벤트 PHP 생성기</h1></div>
     <div class="hdr_actions">
-        <ol class="steps" id="steps">
-            <li><button type="button" data-step="0"><span class="steps_no">1</span>기본 설정</button></li>
-            <li><button type="button" data-step="1"><span class="steps_no">2</span>이미지·항목</button></li>
-            <li><button type="button" data-step="2"><span class="steps_no">3</span>확인·저장</button></li>
-        </ol>
-        <button type="button" class="btn primary" id="headerZip">ZIP으로 저장</button>
+        <button type="button" class="btn primary" id="saveZip">ZIP으로 저장</button>
     </div>
 </header>
 
 <main class="main">
-    <!-- 1단계: 연월·경로 -->
+    <!-- 1. 연월·경로 -->
     <section class="panel" data-panel="0">
         <div class="panel_head">
-            <h2>기본 설정</h2>
+            <h2><span class="panel_no">1</span>기본 설정</h2>
             <span class="panel_sub">몇 년 몇 월 이벤트인가요?</span>
         </div>
         <div class="grid2">
@@ -217,13 +205,12 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
                 <div><button type="button" class="btn" id="resetSettings">기본값으로 되돌리기</button></div>
             </div>
         </details>
-        <div class="nav"><span></span><button type="button" class="btn primary" data-go="1">다음: 이미지 넣기</button></div>
     </section>
 
-    <!-- 2단계: 이미지 + 항목 -->
-    <section class="panel" data-panel="1" hidden>
+    <!-- 2. 이미지 + 항목 -->
+    <section class="panel" data-panel="1">
         <div class="panel_head">
-            <h2>이미지·항목</h2>
+            <h2><span class="panel_no">2</span>이미지·항목</h2>
             <span class="count" id="itemCount"></span>
         </div>
         <div class="drop" id="bulkDrop" tabindex="0" role="button" aria-label="이미지 파일 선택">
@@ -244,27 +231,19 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
             <div class="items" id="items"></div>
             <p class="hint">체크를 끄면 이번 달에는 만들지 않아요. 썸네일을 다른 항목으로 끌면 이미지가 옮겨져요. 입력한 내용은 이 브라우저에 저장돼서 다음 달에도 그대로 나와요.</p>
         </div>
-        <div class="nav">
-            <button type="button" class="btn" data-go="0">이전</button>
-            <button type="button" class="btn primary" data-go="2">다음: 확인하기</button>
-        </div>
     </section>
 
-    <!-- 3단계: 확인 + ZIP -->
-    <section class="panel" data-panel="2" hidden>
+    <!-- 3. 확인 + 받기 -->
+    <section class="panel" data-panel="2" id="review">
         <div class="panel_head">
-            <h2>확인·저장</h2>
-            <span class="panel_sub">파일을 하나씩 받거나 ZIP으로 한 번에 받을 수 있어요.</span>
+            <h2><span class="panel_no">3</span>확인·저장</h2>
+            <span class="panel_sub">파일마다 [받기]로 하나씩, 오른쪽 위 [ZIP으로 저장]으로 한 번에 받아요.</span>
         </div>
         <div class="summary" id="summary"></div>
         <ul class="notes" id="notes"></ul>
         <div class="files">
             <ul class="filelist" id="filelist" role="listbox" aria-label="만들어질 파일"></ul>
             <div class="codebox" id="codebox"></div>
-        </div>
-        <div class="nav">
-            <button type="button" class="btn" data-go="1">이전</button>
-            <button type="button" class="btn primary large" id="saveZip">ZIP으로 저장</button>
         </div>
     </section>
 </main>
@@ -298,7 +277,7 @@ const STORE_KEY = 'eventPhpWizard.v1';
 
 // ===== 상태 =====
 let nextId = 1;
-const state = { step: 0, year: 0, month: 0, settings: { ...DEFAULT_SETTINGS }, items: [], selectedFile: 0 };
+const state = { year: 0, month: 0, settings: { ...DEFAULT_SETTINGS }, items: [], selectedFile: 0 };
 
 function createItem(phpKey, imgKey, alt, on = true) {
     return { id: nextId++, on, phpKey, imgKey, alt, file: null, url: '', w: 0, h: 0, isNew: false };
@@ -441,7 +420,7 @@ function handleBulkFiles(fileList) {
     saveState();
 }
 
-// ===== 2단계 목록 그리기 =====
+// ===== 2. 항목 목록 그리기 =====
 const itemsEl = document.getElementById('items');
 function renderItems() {
     itemsEl.innerHTML = '';
@@ -558,9 +537,23 @@ function updateCount() {
     const on = state.items.filter((it) => it.on);
     const withImg = on.filter((it) => it.file).length;
     document.getElementById('itemCount').textContent = `총 ${on.length}개 · 이미지 ${withImg}/${on.length}`;
+    scheduleReview();
+}
+// 입력할 때마다 다시 그리지 않도록 한 프레임에 한 번만 확인 영역을 갱신해요
+let reviewQueued = false;
+function scheduleReview() {
+    if (reviewQueued) return;
+    reviewQueued = true;
+    requestAnimationFrame(() => { reviewQueued = false; renderReview(); });
+}
+// 연월·규칙이 바뀌면 예시와 모든 항목의 파일명을 다시 계산해요
+function refreshAll() {
+    renderNamePreview();
+    state.items.forEach(updateItemRow);
+    scheduleReview();
 }
 
-// ===== 3단계 확인 =====
+// ===== 3. 확인·저장 =====
 function getOutputFiles() {
     const out = [];
     state.items.filter((it) => it.on && it.phpKey).forEach((it) => {
@@ -583,9 +576,9 @@ function renderReview() {
     getDuplicateKeys().forEach((k) => notes.push(['err', `PHP 이름 "${k}"이(가) 두 번 이상 쓰였어요. 하나를 바꾸거나 끄세요.`]));
     on.forEach((it) => getItemProblems(it).forEach(([lv, msg]) =>
         notes.push([lv, `${it.phpKey || '(이름 없음)'}: ${msg}`])));
-    if (!on.length) notes.push(['err', '만들 항목이 없어요. 2단계에서 체크하세요.']);
+    if (!on.length) notes.push(['err', '만들 항목이 없어요. 2번 목록에서 체크하세요.']);
     document.getElementById('notes').innerHTML = notes.map(([lv, msg]) => `<li class="${lv}">${escapeHtml(msg)}</li>`).join('');
-    document.getElementById('saveZip').disabled = notes.some(([lv]) => lv === 'err');
+    state.errorCount = notes.filter(([lv]) => lv === 'err').length;
 
     const listEl = document.getElementById('filelist');
     if (state.selectedFile >= files.length) state.selectedFile = 0;
@@ -665,6 +658,13 @@ function downloadOne(f) {
     showToast(`${name} 저장했어요`);
 }
 async function saveZip() {
+    // 빨간 오류가 있으면 저장하지 않고 확인 영역으로 이동해요
+    renderReview();
+    if (state.errorCount) {
+        showToast(`빨간색 오류 ${state.errorCount}개를 먼저 해결하세요`);
+        document.getElementById('review').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+    }
     if (typeof JSZip === 'undefined') { showToast('ZIP 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하세요.'); return; }
     const btn = document.getElementById('saveZip');
     btn.disabled = true; btn.textContent = '만드는 중…';
@@ -682,7 +682,7 @@ async function saveZip() {
     }
 }
 
-// ===== 1단계 =====
+// ===== 1. 기본 설정 =====
 function renderNamePreview() {
     const sample = state.items.find((it) => it.on && it.phpKey) || createItem('20per', 'uni20per', '대학교 신입생 수강료 20% 할인');
     document.getElementById('namePreview').textContent =
@@ -692,19 +692,6 @@ function fillSettingsInputs() {
     ['imgUrl', 'phpDir', 'imgDir', 'phpName', 'imgName', 'template'].forEach((k) => {
         document.getElementById(k).value = state.settings[k];
     });
-}
-
-// ===== 단계 이동 =====
-function goStep(n) {
-    state.step = n;
-    document.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = Number(p.dataset.panel) !== n; });
-    document.querySelectorAll('#steps button').forEach((b) => {
-        if (Number(b.dataset.step) === n) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
-    });
-    if (n === 0) renderNamePreview();
-    if (n === 1) renderItems();
-    if (n === 2) renderReview();
-    window.scrollTo({ top: 0 });
 }
 
 // ===== 초기화 =====
@@ -724,19 +711,16 @@ function init() {
     const monthEl = document.getElementById('month');
     for (let m = 1; m <= 12; m++) monthEl.add(new Option(`${m}월`, String(m)));
     yearEl.value = state.year; monthEl.value = String(state.month);
-    yearEl.addEventListener('input', () => { const y = parseInt(yearEl.value, 10); if (y >= 2000 && y <= 2099) { state.year = y; renderNamePreview(); } });
-    monthEl.addEventListener('change', () => { state.month = Number(monthEl.value); renderNamePreview(); });
+    yearEl.addEventListener('input', () => { const y = parseInt(yearEl.value, 10); if (y >= 2000 && y <= 2099) { state.year = y; refreshAll(); } });
+    monthEl.addEventListener('change', () => { state.month = Number(monthEl.value); refreshAll(); });
 
     fillSettingsInputs();
     ['imgUrl', 'phpDir', 'imgDir', 'phpName', 'imgName', 'template'].forEach((k) => {
-        document.getElementById(k).addEventListener('input', (e) => { state.settings[k] = e.target.value; renderNamePreview(); saveState(); });
+        document.getElementById(k).addEventListener('input', (e) => { state.settings[k] = e.target.value; refreshAll(); saveState(); });
     });
     document.getElementById('resetSettings').addEventListener('click', () => {
-        state.settings = { ...DEFAULT_SETTINGS }; fillSettingsInputs(); renderNamePreview(); saveState();
+        state.settings = { ...DEFAULT_SETTINGS }; fillSettingsInputs(); refreshAll(); saveState();
     });
-
-    document.querySelectorAll('#steps button').forEach((b) => b.addEventListener('click', () => goStep(Number(b.dataset.step))));
-    document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => goStep(Number(b.dataset.go))));
 
     const drop = document.getElementById('bulkDrop');
     drop.addEventListener('click', () => bulkInput.click());
@@ -750,8 +734,8 @@ function init() {
         pendingRow = null; oneInput.value = '';
     });
     // 목록 밖에 떨어뜨려도 일괄 처리
-    document.addEventListener('dragover', (e) => { if (state.step === 1) e.preventDefault(); });
-    document.addEventListener('drop', (e) => { if (state.step === 1) { e.preventDefault(); handleBulkFiles(e.dataTransfer.files); } });
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => { e.preventDefault(); handleBulkFiles(e.dataTransfer.files); });
 
     document.getElementById('checkAll').addEventListener('change', (e) => {
         state.items.forEach((it) => { it.on = e.target.checked; });
@@ -770,14 +754,8 @@ function init() {
         state.items = getDefaultItems(); renderItems(); saveState();
     });
     document.getElementById('saveZip').addEventListener('click', saveZip);
-    // 헤더 저장 버튼: 확인 단계로 이동한 뒤 오류가 없으면 바로 저장
-    document.getElementById('headerZip').addEventListener('click', () => {
-        goStep(2);
-        if (!document.getElementById('saveZip').disabled) saveZip();
-        else showToast('저장 전에 빨간색 오류를 먼저 해결하세요');
-    });
-
-    goStep(0);
+    renderNamePreview();
+    renderItems();
 }
 init();
 </script>

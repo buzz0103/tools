@@ -347,7 +347,7 @@
         <label for="switchDate">선택한 달 내용으로 전환할 날짜·시각 (PHP, 선택)</label>
         <div class="row">
           <input type="date" id="switchDate">
-          <input type="time" id="switchTime" value="00:00">
+          <input type="time" id="switchTime" value="08:00">
         </div>
         <div class="hint">날짜를 고르면 PHP에 if문이 들어가서, 그 시각 전에는 이전 달 내용이, 지난 뒤부터는 위에서 선택한 달 내용이 나와요. 비워두면 선택한 달만 나와요.</div>
       </div>
@@ -1792,7 +1792,7 @@ body +
     const yy = yearText.slice(-2);
     const mm = String(parseInt(monthText,10)).padStart(2,'0');
     const switchDateVal = (document.getElementById('switchDate').value || '').trim();
-    const switchTimeVal = (document.getElementById('switchTime').value || '00:00').trim();
+    const switchTimeVal = (document.getElementById('switchTime').value || '08:00').trim();
     let switchAt = '';
     if (switchDateVal){
       if (!/^\d{4}-\d{2}-\d{2}$/.test(switchDateVal) || !/^\d{2}:\d{2}$/.test(switchTimeVal)){

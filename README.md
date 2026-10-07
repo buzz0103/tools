@@ -10,8 +10,23 @@
 tools/
 ├── index.html        ← 도구 모음(카드 목록·검색)
 ├── wallpaper/        ← 월간 배너 자동 생성기 (디자인 규칙: wallpaper/DESIGN.md)
-└── event-php/        ← 이벤트 PHP 생성기
+├── event-php/        ← 이벤트 PHP 생성기
+├── banner-editor/    ← 배너 에디터 (빌드 결과물 — 직접 고치지 말 것)
+└── _src/
+    └── banner-editor/ ← 배너 에디터 원본 코드 (React + Vite)
 ```
+
+## 배너 에디터 수정하기
+
+배너 에디터는 React로 만들어서 다른 마법사와 달리 **빌드**가 필요해요.
+`_src/`는 `_`로 시작해서 GitHub Pages에 공개되지 않아요.
+
+1. `_src/banner-editor/src/` 안의 코드를 고쳐요.
+2. 개발 중 미리보기: `npm --prefix _src/banner-editor run dev`
+3. 빌드: `npm --prefix _src/banner-editor run build` → `banner-editor/`가 새로 만들어져요.
+4. `_src/`와 `banner-editor/`를 함께 커밋·푸시해요. (빌드를 빼먹으면 사이트에 반영되지 않아요)
+
+처음 받은 PC에서는 빌드 전에 `npm --prefix _src/banner-editor ci`로 패키지를 설치해요.
 
 ## 새 마법사 추가하기
 

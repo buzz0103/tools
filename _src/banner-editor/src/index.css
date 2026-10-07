@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* 도구 모음 사이트와 같은 LINE 디자인 기준 색상 (wallpaper/DESIGN.md 7번) */
+@theme {
+  --color-primary: #1775F0;
+  --color-tint: #EEF5FE;
+  --color-ink: #000000;
+  --color-sub: #777777;
+  --color-muted: #949494;
+  --color-fill: #F5F5F5;
+  --color-line: #EFEFEF;
+  --color-edge: #DFDFDF;
+  --color-holder: #C8C8C8;
+  --color-off: #E4E4E4;
+  --color-danger: #E8332E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 도구 화면 서체 — 'Pretendard Variable'은 배너 서체 목록에 없어서 배너 결과물에는 영향 없음 */
+body {
+  margin: 0;
+  font-family: 'LINE Seed KR', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font-size: 14px;
+  line-height: 21px;
+  color: #000000;
+  background: #F5F5F5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #CFE2FC;
+  color: #000000;
+}
+
+:focus-visible {
+  outline: 2px solid #3182F6;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이벤트 PHP 생성기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* 월간 배너 자동 생성기(wallpaper)와 같은 LINE 디자인 기준: 포인트 #1775F0 + Black + Gray, 상태는 opacity(hover 70% / pressed 50%), 모서리 5px(카드 7px·패널 12px) */
+* {box-sizing: border-box;}
+html, body {height: 100%;}
+body {display: flex; flex-direction: column; margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 14px; line-height: 21px; color: #000000; background: #F5F5F5; -webkit-font-smoothing: antialiased;}
+::selection {background: #CFE2FC; color: #000000;}
+.mono {font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 12px;}
+
+/* ---- 상단 헤더 ---- */
+.hdr {position: sticky; top: 0; z-index: 5; display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 56px; padding: 8px 16px 8px 24px; border-bottom: 1px solid #EFEFEF; background: #FFFFFF;}
+.hdr h1 {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;}
+/* 도구 모음으로 돌아가는 링크 */
+.hdr_title {display: flex; align-items: center; gap: 12px; min-width: 0;}
+.hdr_home {flex: 0 0 auto; padding-right: 12px; border-right: 1px solid #DFDFDF; font-size: 14px; font-weight: 500; color: #777777; text-decoration: none; transition: opacity .15s ease;}
+.hdr_home::before {content: "‹ ";}
+.hdr_home:hover {opacity: .7;}
+.hdr_home:focus-visible {outline: 2px solid #1775F0; outline-offset: 2px;}
+.hdr_actions {display: flex; flex-wrap: wrap; align-items: center; gap: 8px;}
+.steps {display: flex; gap: 4px; margin: 0; padding: 0; list-style: none;}
+.steps button {height: 36px; padding: 0 12px; border: 0; border-radius: 5px; font-size: 14px; font-weight: 500; color: #949494; background: transparent;}
+.steps button[aria-current="step"] {font-weight: 700; color: #1775F0; background: #EEF5FE;}
+.steps_no {display: inline-block; margin-right: 6px; font-variant-numeric: tabular-nums;}
+
+/* ---- 본문 ---- */
+.main {flex: 1 0 auto; width: 100%; max-width: 1040px; margin: 0 auto; padding: 16px;}
+.panel {display: grid; gap: 24px; min-width: 0; padding: 24px; border-radius: 12px; background: #FFFFFF;}
+.panel[hidden] {display: none;}
+.panel_head {display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;}
+.panel h2 {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
+.panel_sub {font-size: 12px; line-height: 16px; font-weight: 500; color: #777777;}
+.count {display: inline-flex; padding: 4px 8px; border-radius: 5px; font-size: 12px; line-height: 16px; font-weight: 500; color: #777777; background: #F5F5F5; font-variant-numeric: tabular-nums;}
+.section_label {margin: 0 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777;}
+.grid2 {display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;}
+.stack {display: grid; gap: 16px;}
+.hint {margin: 0; font-size: 12px; line-height: 18px; color: #949494;}
+
+/* ---- 폼 ---- */
+label.field {display: grid; gap: 8px; min-width: 0; font-size: 12px; line-height: 16px; font-weight: 500; color: #777777;}
+input[type="text"], input[type="number"], select, textarea {display: block; width: 100%; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid transparent; border-radius: 5px; font-family: inherit; font-size: 14px; color: #000000; background: #F5F5F5; transition: border-color .15s ease, background .15s ease;}
+input.mono, textarea {font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 13px;}
+textarea {height: auto; min-height: 96px; padding: 10px 12px; line-height: 20px; resize: vertical;}
+input::placeholder, textarea::placeholder {color: #C8C8C8;}
+input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {outline: none; border-color: #1775F0; background: #FFFFFF;}
+input[type="checkbox"] {width: 18px; height: 18px; margin: 0; accent-color: #1775F0; cursor: pointer;}
+input[type="checkbox"]:focus-visible {outline: 2px solid #1775F0; outline-offset: 2px;}
+
+/* ---- 버튼 ---- */
+button {font-family: inherit; cursor: pointer; transition: opacity .15s ease;}
+button:hover:not(:disabled) {opacity: .7;}
+button:active:not(:disabled) {opacity: .5;}
+button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-visible {outline: 2px solid #1775F0; outline-offset: 2px;}
+.btn {display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px; border: 1px solid #DFDFDF; border-radius: 5px; font-size: 14px; font-weight: 500; white-space: nowrap; color: #000000; background: #FFFFFF;}
+.btn.primary {border-color: #1775F0; color: #FFFFFF; background: #1775F0;}
+.btn.outline {border-color: #1775F0; color: #1775F0; background: #FFFFFF;}
+.btn.ghost {border-color: transparent; color: #777777; background: transparent;}
+.btn.small {height: 32px; padding: 0 12px; font-size: 13px;}
+.btn.large {height: 48px; padding: 0 24px; font-size: 16px; font-weight: 700;}
+.btn:disabled {border-color: #E4E4E4; color: #FFFFFF; background: #E4E4E4; cursor: default;}
+.checkall {cursor: pointer; transition: opacity .15s ease;}
+.checkall:hover {opacity: .7;}
+.nav {display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 24px; border-top: 1px solid #EFEFEF;}
+
+/* ---- 예시 미리보기 · 고급 설정 (구분선 아코디언) ---- */
+.preview-path {margin: 0; padding: 12px 16px; border-radius: 7px; line-height: 20px; white-space: pre; color: #303030; background: #F5F5F5; overflow-x: auto;}
+.adv {border-top: 1px solid #EFEFEF; border-bottom: 1px solid #EFEFEF;}
+.adv summary {display: flex; align-items: center; height: 56px; font-size: 16px; line-height: 24px; font-weight: 700; list-style: none; cursor: pointer;}
+.adv summary::-webkit-details-marker {display: none;}
+.adv summary::after {content: ""; width: 8px; height: 8px; margin: -4px 6px 0 auto; border-right: 1.8px solid #949494; border-bottom: 1.8px solid #949494; transform: rotate(45deg); transition: transform .2s ease;}
+.adv[open] summary::after {margin-top: 4px; transform: rotate(-135deg);}
+.adv_body {display: grid; gap: 16px; padding: 0 0 24px;}
+
+/* ---- 이미지 일괄 드롭 ---- */
+.drop {display: grid; gap: 4px; padding: 28px 16px; border: 1px dashed #DFDFDF; border-radius: 7px; text-align: center; color: #777777; background: #FFFFFF; cursor: pointer; transition: border-color .2s ease, color .2s ease;}
+.drop strong {font-size: 16px; line-height: 24px; font-weight: 700; color: #000000;}
+.drop > span {font-size: 12px; line-height: 18px;}
+.drop:hover, .drop.over {border-color: #1775F0; color: #1775F0;}
+.drop.over {background: #EEF5FE;}
+
+/* ---- 항목 목록 (카드 없이 구분선) ---- */
+.toolbar {display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;}
+.toolbar_btns {display: flex; flex-wrap: wrap; gap: 8px;}
+.items {display: grid; border-top: 1px solid #EFEFEF;}
+.item {display: grid; grid-template-columns: auto 112px minmax(0, 1fr) auto; align-items: start; gap: 16px; padding: 16px 0; border-bottom: 1px solid #EFEFEF;}
+.item.off .thumb, .item.off .fields {opacity: .4;}
+.item.over {background: #EEF5FE;}
+.lead {display: grid; justify-items: center; gap: 8px; min-width: 28px; padding-top: 2px;}
+.num {font-size: 16px; line-height: 20px; font-weight: 700; color: #1775F0; font-variant-numeric: tabular-nums;}
+.item.off .num {color: #C8C8C8;}
+.thumb {display: grid; place-items: center; width: 112px; height: 84px; padding: 4px; overflow: hidden; border: 1px dashed #DFDFDF; border-radius: 5px; font-size: 12px; line-height: 16px; text-align: center; color: #949494; background: #F5F5F5; cursor: pointer;}
+.thumb:hover {border-color: #1775F0; color: #1775F0;}
+.thumb.has {padding: 0; border: 1px solid #EFEFEF; cursor: grab;}
+.thumb img {width: 100%; height: 100%; object-fit: cover; object-position: top;}
+.fields {display: grid; gap: 8px; min-width: 0;}
+.fields .row {display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+.out {display: flex; flex-wrap: wrap; gap: 4px 16px; color: #777777;}
+.out span {overflow-wrap: anywhere;}
+.meta {font-size: 12px; line-height: 18px; color: #949494;}
+.x {width: 32px; height: 32px; padding: 0; border: 0; border-radius: 5px; font-size: 20px; line-height: 1; color: #949494; background: transparent;}
+.x:hover {color: #E8332E;}
+
+/* ---- 상태 표시 ---- */
+.pill {display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 12px; line-height: 16px; font-weight: 500;}
+.pill.warn {color: #A65400; background: #FFF4E5;}
+.pill.err {color: #E8332E; background: #FDECEB;}
+.pill.ok {padding-left: 0; color: #1775F0; background: transparent;}
+.notes {display: grid; gap: 4px; margin: 0; padding: 0; list-style: none;}
+.notes:empty {display: none;}
+.notes li {padding: 8px 12px; border-radius: 5px; font-size: 13px; line-height: 20px;}
+.notes li.warn {color: #A65400; background: #FFF4E5;}
+.notes li.err {color: #E8332E; background: #FDECEB;}
+
+/* ---- 확인 · 저장 ---- */
+.summary {display: flex; flex-wrap: wrap; gap: 8px; font-variant-numeric: tabular-nums;}
+.summary div {display: grid; gap: 2px; min-width: 120px; padding: 12px 16px; border-radius: 7px; background: #F5F5F5;}
+.summary b {font-size: 22px; line-height: 28px; font-weight: 700;}
+.summary span {font-size: 12px; line-height: 16px; color: #777777;}
+.files {display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 16px;}
+.filelist {display: grid; align-content: start; gap: 2px; max-height: 440px; margin: 0; padding: 0; overflow-y: auto; list-style: none;}
+.filelist li {display: flex; align-items: center; gap: 4px;}
+.filelist button {flex: 1; min-width: 0; height: 36px; padding: 0 8px; border: 0; border-radius: 5px; font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 12px; text-align: left; color: #000000; background: transparent; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
+.filelist button[aria-selected="true"] {font-weight: 700; color: #1775F0; background: #EEF5FE;}
+.filelist .no {display: inline-block; min-width: 2.4em; color: #949494; font-variant-numeric: tabular-nums;}
+.filelist .dl {flex: none; width: auto; height: 28px; padding: 0 8px; border: 1px solid #DFDFDF; font-family: inherit; color: #777777; background: #FFFFFF;}
+.filelist .dl:hover {border-color: #1775F0; color: #1775F0;}
+.codebox {display: grid; align-content: start; gap: 8px; min-width: 0;}
+.codebox .head {display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;}
+.codebox .head > span:first-child {color: #777777; overflow-wrap: anywhere;}
+.codebox pre {margin: 0; padding: 16px; border-radius: 7px; font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 12.5px; line-height: 20px; white-space: pre; color: #303030; background: #F5F5F5; overflow-x: auto;}
+.codebox img {max-width: 100%; border: 1px solid #EFEFEF; border-radius: 7px;}
+
+/* ---- 토스트 ---- */
+.toast {position: fixed; left: 50%; bottom: 24px; z-index: 10; max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 7px; font-size: 14px; line-height: 20px; color: #FCFCFC; background: rgba(0, 0, 0, .8); opacity: 0; transform: translateX(-50%); pointer-events: none; transition: opacity .2s ease;}
+.toast.show {opacity: 1;}
+
+@media (max-width: 880px) {
+    .hdr {padding: 8px 16px;}
+    .panel {padding: 20px 16px;}
+    .files {grid-template-columns: 1fr;}
+    .filelist {max-height: 220px;}
+}
+@media (max-width: 640px) {
+    #headerZip {display: none;}
+    .steps button {padding: 0 8px; font-size: 13px;}
+    .item {grid-template-columns: auto 80px minmax(0, 1fr); gap: 12px;}
+    .item .x {grid-column: 3; justify-self: end;}
+    .thumb {width: 80px; height: 64px;}
+    .fields .row {grid-template-columns: 1fr;}
+}
+@media (prefers-reduced-motion: reduce) {
+    * {transition: none; animation: none;}
+}
+</style>
+</head>
+<body>
+<header class="hdr">
+    <div class="hdr_title"><a class="hdr_home" href="../">도구 모음</a><h1>이벤트 PHP 생성기</h1></div>
+    <div class="hdr_actions">
+        <ol class="steps" id="steps">
+            <li><button type="button" data-step="0"><span class="steps_no">1</span>기본 설정</button></li>
+            <li><button type="button" data-step="1"><span class="steps_no">2</span>이미지·항목</button></li>
+            <li><button type="button" data-step="2"><span class="steps_no">3</span>확인·저장</button></li>
+        </ol>
+        <button type="button" class="btn primary" id="headerZip">ZIP으로 저장</button>
+    </div>
+</header>
+
+<main class="main">
+    <!-- 1단계: 연월·경로 -->
+    <section class="panel" data-panel="0">
+        <div class="panel_head">
+            <h2>기본 설정</h2>
+            <span class="panel_sub">몇 년 몇 월 이벤트인가요?</span>
+        </div>
+        <div class="grid2">
+            <label class="field">연도
+                <input type="number" id="year" min="2020" max="2099">
+            </label>
+            <label class="field">월
+                <select id="month"></select>
+            </label>
+        </div>
+        <div>
+            <p class="section_label">이렇게 만들어져요 (예시)</p>
+            <pre class="preview-path mono" id="namePreview"></pre>
+        </div>
+        <details class="adv">
+            <summary>고급 설정 · 경로와 PHP 내용</summary>
+            <div class="adv_body">
+                <p class="hint"><span class="mono">{yyyy}</span>는 연도 4자리, <span class="mono">{yymm}</span>은 2610, <span class="mono">{yyyymm}</span>은 202610으로 바뀌어요.</p>
+                <div class="grid2">
+                    <label class="field">이미지 주소 (img src 앞부분)
+                        <input type="text" id="imgUrl" class="mono">
+                    </label>
+                    <label class="field">ZIP 안 PHP 폴더
+                        <input type="text" id="phpDir" class="mono">
+                    </label>
+                    <label class="field">ZIP 안 이미지 폴더
+                        <input type="text" id="imgDir" class="mono">
+                    </label>
+                    <label class="field">PHP 파일명 규칙
+                        <input type="text" id="phpName" class="mono">
+                    </label>
+                    <label class="field">이미지 파일명 규칙
+                        <input type="text" id="imgName" class="mono">
+                    </label>
+                </div>
+                <label class="field">PHP 내용 ({{src}}, {{alt}} 자리에 값이 들어가요)
+                    <textarea id="template" spellcheck="false"></textarea>
+                </label>
+                <div><button type="button" class="btn" id="resetSettings">기본값으로 되돌리기</button></div>
+            </div>
+        </details>
+        <div class="nav"><span></span><button type="button" class="btn primary" data-go="1">다음: 이미지 넣기</button></div>
+    </section>
+
+    <!-- 2단계: 이미지 + 항목 -->
+    <section class="panel" data-panel="1" hidden>
+        <div class="panel_head">
+            <h2>이미지·항목</h2>
+            <span class="count" id="itemCount"></span>
+        </div>
+        <div class="drop" id="bulkDrop" tabindex="0" role="button" aria-label="이미지 파일 선택">
+            <strong>받은 이미지를 여기에 한꺼번에 끌어다 놓으세요</strong>
+            <span>파일명에 <span class="mono">20per</span>, <span class="mono">cnn</span> 같은 이름이 들어 있으면 알맞은 항목에 자동으로 들어가요. 클릭해서 고를 수도 있어요.</span>
+        </div>
+        <input type="file" id="bulkInput" accept="image/*" multiple hidden>
+        <input type="file" id="oneInput" accept="image/*" hidden>
+        <div class="stack">
+            <div class="toolbar">
+                <label class="btn small checkall"><input type="checkbox" id="checkAll"> 전체 선택</label>
+                <div class="toolbar_btns">
+                    <button type="button" class="btn small outline" id="addItem">+ 항목 추가</button>
+                    <button type="button" class="btn small ghost" id="clearImages">이미지 모두 비우기</button>
+                    <button type="button" class="btn small ghost" id="resetItems">기본 목록으로</button>
+                </div>
+            </div>
+            <div class="items" id="items"></div>
+            <p class="hint">체크를 끄면 이번 달에는 만들지 않아요. 썸네일을 다른 항목으로 끌면 이미지가 옮겨져요. 입력한 내용은 이 브라우저에 저장돼서 다음 달에도 그대로 나와요.</p>
+        </div>
+        <div class="nav">
+            <button type="button" class="btn" data-go="0">이전</button>
+            <button type="button" class="btn primary" data-go="2">다음: 확인하기</button>
+        </div>
+    </section>
+
+    <!-- 3단계: 확인 + ZIP -->
+    <section class="panel" data-panel="2" hidden>
+        <div class="panel_head">
+            <h2>확인·저장</h2>
+            <span class="panel_sub">파일을 하나씩 받거나 ZIP으로 한 번에 받을 수 있어요.</span>
+        </div>
+        <div class="summary" id="summary"></div>
+        <ul class="notes" id="notes"></ul>
+        <div class="files">
+            <ul class="filelist" id="filelist" role="listbox" aria-label="만들어질 파일"></ul>
+            <div class="codebox" id="codebox"></div>
+        </div>
+        <div class="nav">
+            <button type="button" class="btn" data-go="1">이전</button>
+            <button type="button" class="btn primary large" id="saveZip">ZIP으로 저장</button>
+        </div>
+    </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+// ===== 기본값 =====
+const DEFAULT_SETTINGS = {
+    imgUrl: '/resource/images/event/{yyyy}/',
+    phpDir: 'view/design/event/{yyyy}/',
+    imgDir: 'resource/images/event/{yyyy}/',
+    phpName: 'event_{yymm}_{key}.php',
+    imgName: 'detail_{yyyymm}_{img}',
+    template: '<div class="event_detail_page" >\n<img src="{{src}}" alt="{{alt}}" class="align_center" />\n</div>'
+};
+// [PHP 이름, 이미지 이름, 대체텍스트]
+const DEFAULT_ITEMS = [
+    ['main', 'main', ''],
+    ['early', 'early', ''],
+    ['10per', '10per', ''],
+    ['20per', 'uni20per', '대학교 신입생 수강료 20% 할인'],
+    ['callofduty', 'callofduty', ''],
+    ['cj', 'cj', ''],
+    ['cnn', 'cnn', ''],
+    ['jobcard', 'jobcard', ''],
+    ['toefl', 'toefl', ''],
+    ['ybmlive', 'ybmlive', '']
+];
+const STORE_KEY = 'eventPhpWizard.v1';
+
+// ===== 상태 =====
+let nextId = 1;
+const state = { step: 0, year: 0, month: 0, settings: { ...DEFAULT_SETTINGS }, items: [], selectedFile: 0 };
+
+function createItem(phpKey, imgKey, alt, on = true) {
+    return { id: nextId++, on, phpKey, imgKey, alt, file: null, url: '', w: 0, h: 0, isNew: false };
+}
+function getDefaultItems() {
+    return DEFAULT_ITEMS.map(([p, i, a]) => createItem(p, i, a));
+}
+
+// ===== 저장/불러오기 (이미지 파일은 저장하지 않음) =====
+function saveState() {
+    try {
+        const data = {
+            settings: state.settings,
+            items: state.items.map(({ on, phpKey, imgKey, alt }) => ({ on, phpKey, imgKey, alt }))
+        };
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    } catch (e) { /* 저장 불가 환경은 무시 */ }
+}
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        state.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+        state.items = (data.items || []).map((it) => createItem(it.phpKey || '', it.imgKey || '', it.alt || '', it.on !== false));
+        return state.items.length > 0;
+    } catch (e) { return false; }
+}
+
+// ===== 이름 계산 =====
+function getDateTokens() {
+    const yyyy = String(state.year);
+    const mm = String(state.month).padStart(2, '0');
+    return { yyyy, yymm: yyyy.slice(2) + mm, yyyymm: yyyy + mm };
+}
+function fillTokens(pattern, extra = {}) {
+    const t = { ...getDateTokens(), ...extra };
+    return pattern.replace(/\{(yyyy|yymm|yyyymm|key|img)\}/g, (_, k) => t[k] ?? '');
+}
+function getExt(it) {
+    if (!it.file) return 'jpg';
+    const m = /\.([a-z0-9]+)$/i.exec(it.file.name);
+    const ext = m ? m[1].toLowerCase() : 'jpg';
+    return ext === 'jpeg' ? 'jpg' : ext;
+}
+function getPhpName(it) { return fillTokens(state.settings.phpName, { key: it.phpKey }); }
+function getImgName(it) { return fillTokens(state.settings.imgName, { img: it.imgKey || it.phpKey }) + '.' + getExt(it); }
+function getImgSrc(it) { return fillTokens(state.settings.imgUrl) + getImgName(it); }
+function joinPath(dir, name) {
+    const d = fillTokens(dir).replace(/^\/+/, '');
+    return d && !d.endsWith('/') ? d + '/' + name : d + name;
+}
+function escapeAttr(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function buildPhp(it) {
+    return state.settings.template
+        .split('{{src}}').join(getImgSrc(it))
+        .split('{{alt}}').join(escapeAttr(it.alt.trim()));
+}
+
+// ===== 검사 =====
+const KEY_RE = /^[A-Za-z0-9_-]+$/;
+function getItemProblems(it) {
+    const list = [];
+    // 파일명으로 짝을 못 찾아 새로 생긴 항목은 이름을 확인하기 전까지 저장하지 않아요
+    if (it.isNew) list.push(['err', `파일명으로 항목을 못 찾았어요. PHP 이름을 고치거나 이미지를 알맞은 칸으로 끌어 옮기세요`]);
+    if (!it.phpKey) list.push(['err', 'PHP 이름이 비어 있어요']);
+    else if (!KEY_RE.test(it.phpKey)) list.push(['err', 'PHP 이름에는 영문·숫자·_·- 만 쓸 수 있어요']);
+    if (it.imgKey && !KEY_RE.test(it.imgKey)) list.push(['err', '이미지 이름에는 영문·숫자·_·- 만 쓸 수 있어요']);
+    if (!it.file) list.push(['warn', '이미지가 없어요']);
+    if (!it.alt.trim()) list.push(['warn', '대체텍스트(alt)가 비어 있어요']);
+    return list;
+}
+function getDuplicateKeys() {
+    const seen = new Map();
+    state.items.filter((it) => it.on && it.phpKey).forEach((it) => seen.set(it.phpKey, (seen.get(it.phpKey) || 0) + 1));
+    return [...seen].filter(([, n]) => n > 1).map(([k]) => k);
+}
+
+// ===== 이미지 처리 =====
+function deriveKey(fileName) {
+    return fileName.replace(/\.[^.]+$/, '').toLowerCase()
+        .replace(/^detail_\d{6}_/, '').replace(/^event_\d{4}_/, '')
+        .replace(/[^a-z0-9_-]/g, '');
+}
+function setItemFile(it, file) {
+    if (it.url) URL.revokeObjectURL(it.url);
+    it.file = file;
+    it.url = file ? URL.createObjectURL(file) : '';
+    it.w = 0; it.h = 0;
+    if (file) {
+        const img = new Image();
+        img.onload = () => { it.w = img.naturalWidth; it.h = img.naturalHeight; updateItemRow(it); };
+        img.src = it.url;
+    }
+}
+// 파일명에 가장 길게 들어맞는 이름을 가진 항목을 찾아요
+function findMatch(name, taken) {
+    const lower = name.toLowerCase();
+    let best = null; let bestScore = 0;
+    state.items.forEach((it) => {
+        if (taken.has(it.id)) return;
+        [[it.imgKey, 1], [it.phpKey, 0]].forEach(([k, bonus]) => {
+            if (!k) return;
+            const key = k.toLowerCase();
+            // 10per 가 uni10per 등 다른 이름 안에 우연히 들어간 경우를 줄이기 위해 길이로 점수
+            if (lower.includes(key)) {
+                const score = key.length * 2 + bonus;
+                if (score > bestScore) { best = it; bestScore = score; }
+            }
+        });
+    });
+    return best;
+}
+function handleBulkFiles(fileList) {
+    const files = [...fileList].filter((f) => f.type.startsWith('image/'));
+    const taken = new Set();
+    // 긴 파일명부터 처리해야 짧은 이름에 먼저 빼앗기지 않아요
+    files.sort((a, b) => b.name.length - a.name.length);
+    files.forEach((file) => {
+        let it = findMatch(file.name, taken);
+        if (!it) {
+            const key = deriveKey(file.name);
+            // 이미지 이름은 비워 두면 PHP 이름을 따라가요 (PHP 이름만 고치면 둘 다 바뀜)
+            it = createItem(key, '', '');
+            it.isNew = true;
+            state.items.push(it);
+        }
+        it.on = true;
+        taken.add(it.id);
+        setItemFile(it, file);
+    });
+    // 이미지가 안 들어간 항목은 이번 달에 없는 것으로 보고 꺼요
+    state.items.forEach((it) => { if (!it.file) it.on = false; });
+    renderItems();
+    saveState();
+}
+
+// ===== 2단계 목록 그리기 =====
+const itemsEl = document.getElementById('items');
+function renderItems() {
+    itemsEl.innerHTML = '';
+    state.items.forEach((it) => {
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.dataset.id = it.id;
+        row.innerHTML = `
+            <div class="lead"><span class="num"></span><input type="checkbox" id="on-${it.id}" aria-label="이번 달에 만들기"></div>
+            <div class="thumb" tabindex="0" role="button" aria-label="이미지 선택"></div>
+            <div class="fields">
+                <div class="row">
+                    <label class="field">PHP 이름<input type="text" id="php-${it.id}" class="mono" data-k="phpKey" spellcheck="false"></label>
+                    <label class="field">이미지 이름<input type="text" id="img-${it.id}" class="mono" data-k="imgKey" spellcheck="false" placeholder="비우면 PHP 이름과 같게"></label>
+                </div>
+                <label class="field">대체텍스트 (alt)<input type="text" id="alt-${it.id}" data-k="alt" placeholder="예: 대학교 신입생 수강료 20% 할인"></label>
+                <div class="out mono"></div>
+                <div class="meta"></div>
+            </div>
+            <button type="button" class="x" aria-label="항목 삭제" title="항목 삭제">×</button>`;
+        const check = row.querySelector('input[type="checkbox"]');
+        check.checked = it.on;
+        check.addEventListener('change', () => { it.on = check.checked; updateItemRow(it); saveState(); });
+        row.querySelectorAll('input[data-k]').forEach((input) => {
+            input.value = it[input.dataset.k];
+            input.addEventListener('input', () => {
+                it[input.dataset.k] = input.dataset.k === 'alt' ? input.value : input.value.trim();
+                if (input.dataset.k !== 'alt') it.isNew = false;
+                updateItemRow(it);
+                saveState();
+            });
+        });
+        const thumb = row.querySelector('.thumb');
+        const pick = () => { pendingRow = it; oneInput.click(); };
+        thumb.addEventListener('click', pick);
+        thumb.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+        thumb.draggable = true;
+        thumb.addEventListener('dragstart', (e) => {
+            if (!it.file) { e.preventDefault(); return; }
+            e.dataTransfer.setData('text/x-item-id', String(it.id));
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        row.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); row.classList.add('over'); });
+        row.addEventListener('dragleave', () => row.classList.remove('over'));
+        row.addEventListener('drop', (e) => {
+            e.preventDefault(); e.stopPropagation(); row.classList.remove('over');
+            const srcId = Number(e.dataTransfer.getData('text/x-item-id'));
+            if (srcId) { moveImage(srcId, it); return; }
+            const file = [...e.dataTransfer.files].find((f) => f.type.startsWith('image/'));
+            if (file) { it.on = true; setItemFile(it, file); renderItems(); }
+        });
+        row.querySelector('.x').addEventListener('click', () => {
+            setItemFile(it, null);
+            state.items = state.items.filter((x) => x !== it);
+            renderItems(); saveState();
+        });
+        itemsEl.appendChild(row);
+        updateItemRow(it);
+    });
+    updateCount();
+}
+// 다른 항목의 이미지를 이 항목으로 옮겨요 (이 항목에 이미지가 있으면 서로 바꿔요)
+function moveImage(srcId, target) {
+    const src = state.items.find((x) => x.id === srcId);
+    if (!src || src === target || !src.file) return;
+    const srcFile = src.file;
+    const targetFile = target.file;
+    setItemFile(target, srcFile);
+    setItemFile(src, targetFile);
+    target.on = true;
+    if (!src.file) {
+        // 자동으로 생긴 새 항목이 비면 지우고, 기존 항목이 비면 꺼요
+        if (src.isNew) state.items = state.items.filter((x) => x !== src);
+        else src.on = false;
+    }
+    renderItems(); saveState();
+}
+function updateItemRow(it) {
+    const row = itemsEl.querySelector(`.item[data-id="${it.id}"]`);
+    if (!row) return;
+    row.classList.toggle('off', !it.on);
+    const thumb = row.querySelector('.thumb');
+    thumb.classList.toggle('has', !!it.url);
+    thumb.innerHTML = it.url ? `<img src="${it.url}" alt="">` : '이미지<br>넣기';
+    thumb.title = it.url ? '다른 항목으로 끌어서 옮길 수 있어요' : '';
+    row.querySelector('.out').innerHTML =
+        `<span>${escapeHtml(getPhpName(it))}</span><span>${escapeHtml(getImgName(it))}</span>`;
+    const problems = it.on ? getItemProblems(it) : [];
+    const size = it.file ? `${it.file.name}${it.w ? ` · ${it.w}×${it.h}` : ''} · ${Math.round(it.file.size / 1024)}KB` : '';
+    const pills = problems.length
+        ? problems.map(([lv, msg]) => `<span class="pill ${lv}">${msg}</span>`).join(' ')
+        : (it.on ? '<span class="pill ok">준비됨</span>' : '');
+    row.querySelector('.meta').innerHTML = [pills, escapeHtml(size)].filter(Boolean).join(' &nbsp;');
+    updateCount();
+}
+// 켜진 항목만 1부터 차례로 번호를 매겨요
+function updateNumbers() {
+    let n = 0;
+    state.items.forEach((it) => {
+        const el = itemsEl.querySelector(`.item[data-id="${it.id}"] .num`);
+        if (el) el.textContent = it.on ? String(++n) : '–';
+    });
+}
+// 전체 선택 체크박스 상태 맞추기 (일부만 선택이면 중간 표시)
+function updateCheckAll() {
+    const box = document.getElementById('checkAll');
+    const onCount = state.items.filter((it) => it.on).length;
+    box.checked = state.items.length > 0 && onCount === state.items.length;
+    box.indeterminate = onCount > 0 && onCount < state.items.length;
+}
+function updateCount() {
+    updateNumbers();
+    updateCheckAll();
+    const on = state.items.filter((it) => it.on);
+    const withImg = on.filter((it) => it.file).length;
+    document.getElementById('itemCount').textContent = `총 ${on.length}개 · 이미지 ${withImg}/${on.length}`;
+}
+
+// ===== 3단계 확인 =====
+function getOutputFiles() {
+    const out = [];
+    state.items.filter((it) => it.on && it.phpKey).forEach((it) => {
+        out.push({ type: 'php', path: joinPath(state.settings.phpDir, getPhpName(it)), content: buildPhp(it), item: it });
+        if (it.file) out.push({ type: 'img', path: joinPath(state.settings.imgDir, getImgName(it)), file: it.file, item: it });
+    });
+    return out;
+}
+function renderReview() {
+    const on = state.items.filter((it) => it.on);
+    const files = getOutputFiles();
+    const phpCount = files.filter((f) => f.type === 'php').length;
+    const imgCount = files.filter((f) => f.type === 'img').length;
+    document.getElementById('summary').innerHTML = `
+        <div><b>${getDateTokens().yymm}</b><span>${state.year}년 ${state.month}월</span></div>
+        <div><b>${phpCount}</b><span>PHP 파일</span></div>
+        <div><b>${imgCount}</b><span>이미지 파일</span></div>`;
+
+    const notes = [];
+    getDuplicateKeys().forEach((k) => notes.push(['err', `PHP 이름 "${k}"이(가) 두 번 이상 쓰였어요. 하나를 바꾸거나 끄세요.`]));
+    on.forEach((it) => getItemProblems(it).forEach(([lv, msg]) =>
+        notes.push([lv, `${it.phpKey || '(이름 없음)'}: ${msg}`])));
+    if (!on.length) notes.push(['err', '만들 항목이 없어요. 2단계에서 체크하세요.']);
+    document.getElementById('notes').innerHTML = notes.map(([lv, msg]) => `<li class="${lv}">${escapeHtml(msg)}</li>`).join('');
+    document.getElementById('saveZip').disabled = notes.some(([lv]) => lv === 'err');
+
+    const listEl = document.getElementById('filelist');
+    if (state.selectedFile >= files.length) state.selectedFile = 0;
+    listEl.innerHTML = '';
+    let phpNo = 0;
+    files.forEach((f, i) => {
+        if (f.type === 'php') phpNo++;
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('role', 'option');
+        b.setAttribute('aria-selected', String(i === state.selectedFile));
+        const no = document.createElement('span');
+        no.className = 'no';
+        no.textContent = f.type === 'php' ? `${phpNo}.` : '';
+        b.append(no, f.path.split('/').pop());
+        b.addEventListener('click', () => { state.selectedFile = i; renderReview(); });
+        const dl = document.createElement('button');
+        dl.type = 'button';
+        dl.className = 'dl';
+        dl.textContent = '받기';
+        dl.setAttribute('aria-label', `${f.path.split('/').pop()} 받기`);
+        dl.addEventListener('click', () => downloadOne(f));
+        li.append(b, dl);
+        listEl.appendChild(li);
+    });
+    const box = document.getElementById('codebox');
+    const f = files[state.selectedFile];
+    if (!f) { box.innerHTML = '<p class="hint">만들어질 파일이 없어요.</p>'; return; }
+    if (f.type === 'php') {
+        box.innerHTML = `<div class="head"><span class="mono hint">${escapeHtml(f.path)}</span>
+            <span class="toolbar_btns"><button type="button" class="btn small" id="copyCode">코드 복사</button>
+            <button type="button" class="btn small outline" id="dlOne">이 파일 받기</button></span></div>
+            <pre id="codeText">${escapeHtml(f.content)}</pre>`;
+        document.getElementById('copyCode').addEventListener('click', () => copyText(f.content));
+        document.getElementById('dlOne').addEventListener('click', () => downloadOne(f));
+    } else {
+        box.innerHTML = `<div class="head"><span class="mono hint">${escapeHtml(f.path)}</span>
+            <button type="button" class="btn small outline" id="dlOne">이 파일 받기</button></div>
+            <img src="${f.item.url}" alt="${escapeAttr(f.item.alt)}">`;
+        document.getElementById('dlOne').addEventListener('click', () => downloadOne(f));
+    }
+}
+function copyText(text) {
+    const done = () => showToast('복사했어요');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => selectCode());
+    } else selectCode();
+}
+function selectCode() {
+    const el = document.getElementById('codeText');
+    if (!el) return;
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    showToast('코드를 선택했어요. Ctrl+C로 복사하세요');
+}
+let toastTimer = 0;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.classList.remove('show'); }, 2500);
+}
+function downloadBlob(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+// 파일 하나만 받기 (PHP는 BOM 없는 UTF-8)
+function downloadOne(f) {
+    const name = f.path.split('/').pop();
+    const blob = f.type === 'php' ? new Blob([f.content], { type: 'text/plain;charset=utf-8' }) : f.file;
+    downloadBlob(blob, name);
+    showToast(`${name} 저장했어요`);
+}
+async function saveZip() {
+    if (typeof JSZip === 'undefined') { showToast('ZIP 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하세요.'); return; }
+    const btn = document.getElementById('saveZip');
+    btn.disabled = true; btn.textContent = '만드는 중…';
+    try {
+        const zip = new JSZip();
+        getOutputFiles().forEach((f) => zip.file(f.path, f.type === 'php' ? f.content : f.file));
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const name = `event_${getDateTokens().yymm}.zip`;
+        downloadBlob(blob, name);
+        showToast(`${name} 저장했어요`);
+    } catch (e) {
+        showToast('ZIP을 만들지 못했어요: ' + e.message);
+    } finally {
+        btn.textContent = 'ZIP으로 저장'; btn.disabled = false;
+    }
+}
+
+// ===== 1단계 =====
+function renderNamePreview() {
+    const sample = state.items.find((it) => it.on && it.phpKey) || createItem('20per', 'uni20per', '대학교 신입생 수강료 20% 할인');
+    document.getElementById('namePreview').textContent =
+        `${joinPath(state.settings.phpDir, getPhpName(sample))}\n${joinPath(state.settings.imgDir, getImgName(sample))}\n\n${buildPhp(sample)}`;
+}
+function fillSettingsInputs() {
+    ['imgUrl', 'phpDir', 'imgDir', 'phpName', 'imgName', 'template'].forEach((k) => {
+        document.getElementById(k).value = state.settings[k];
+    });
+}
+
+// ===== 단계 이동 =====
+function goStep(n) {
+    state.step = n;
+    document.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = Number(p.dataset.panel) !== n; });
+    document.querySelectorAll('#steps button').forEach((b) => {
+        if (Number(b.dataset.step) === n) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    });
+    if (n === 0) renderNamePreview();
+    if (n === 1) renderItems();
+    if (n === 2) renderReview();
+    window.scrollTo({ top: 0 });
+}
+
+// ===== 초기화 =====
+let pendingRow = null;
+const oneInput = document.getElementById('oneInput');
+const bulkInput = document.getElementById('bulkInput');
+
+function init() {
+    if (!loadState()) state.items = getDefaultItems();
+    // 기본 연월: 다음 달
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    state.year = next.getFullYear();
+    state.month = next.getMonth() + 1;
+
+    const yearEl = document.getElementById('year');
+    const monthEl = document.getElementById('month');
+    for (let m = 1; m <= 12; m++) monthEl.add(new Option(`${m}월`, String(m)));
+    yearEl.value = state.year; monthEl.value = String(state.month);
+    yearEl.addEventListener('input', () => { const y = parseInt(yearEl.value, 10); if (y >= 2000 && y <= 2099) { state.year = y; renderNamePreview(); } });
+    monthEl.addEventListener('change', () => { state.month = Number(monthEl.value); renderNamePreview(); });
+
+    fillSettingsInputs();
+    ['imgUrl', 'phpDir', 'imgDir', 'phpName', 'imgName', 'template'].forEach((k) => {
+        document.getElementById(k).addEventListener('input', (e) => { state.settings[k] = e.target.value; renderNamePreview(); saveState(); });
+    });
+    document.getElementById('resetSettings').addEventListener('click', () => {
+        state.settings = { ...DEFAULT_SETTINGS }; fillSettingsInputs(); renderNamePreview(); saveState();
+    });
+
+    document.querySelectorAll('#steps button').forEach((b) => b.addEventListener('click', () => goStep(Number(b.dataset.step))));
+    document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => goStep(Number(b.dataset.go))));
+
+    const drop = document.getElementById('bulkDrop');
+    drop.addEventListener('click', () => bulkInput.click());
+    drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bulkInput.click(); } });
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); handleBulkFiles(e.dataTransfer.files); });
+    bulkInput.addEventListener('change', () => { handleBulkFiles(bulkInput.files); bulkInput.value = ''; });
+    oneInput.addEventListener('change', () => {
+        if (pendingRow && oneInput.files[0]) { pendingRow.on = true; setItemFile(pendingRow, oneInput.files[0]); renderItems(); }
+        pendingRow = null; oneInput.value = '';
+    });
+    // 목록 밖에 떨어뜨려도 일괄 처리
+    document.addEventListener('dragover', (e) => { if (state.step === 1) e.preventDefault(); });
+    document.addEventListener('drop', (e) => { if (state.step === 1) { e.preventDefault(); handleBulkFiles(e.dataTransfer.files); } });
+
+    document.getElementById('checkAll').addEventListener('change', (e) => {
+        state.items.forEach((it) => { it.on = e.target.checked; });
+        renderItems(); saveState();
+    });
+    document.getElementById('addItem').addEventListener('click', () => {
+        state.items.push(createItem('', '', '')); renderItems(); saveState();
+        const last = itemsEl.querySelector('.item:last-child input[data-k="phpKey"]');
+        if (last) last.focus();
+    });
+    document.getElementById('clearImages').addEventListener('click', () => {
+        state.items.forEach((it) => setItemFile(it, null)); renderItems();
+    });
+    document.getElementById('resetItems').addEventListener('click', () => {
+        state.items.forEach((it) => setItemFile(it, null));
+        state.items = getDefaultItems(); renderItems(); saveState();
+    });
+    document.getElementById('saveZip').addEventListener('click', saveZip);
+    // 헤더 저장 버튼: 확인 단계로 이동한 뒤 오류가 없으면 바로 저장
+    document.getElementById('headerZip').addEventListener('click', () => {
+        goStep(2);
+        if (!document.getElementById('saveZip').disabled) saveZip();
+        else showToast('저장 전에 빨간색 오류를 먼저 해결하세요');
+    });
+
+    goStep(0);
+}
+init();
+</script>
+</body>
+</html>

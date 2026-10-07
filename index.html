@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>도구 모음</title>
+<meta name="description" content="매달 반복하는 배너·이벤트 작업을 간편하게 처리하는 내부 마법사 모음">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* 마법사들과 같은 LINE 디자인 기준: 포인트 #1775F0 + Black + Gray, 상태는 opacity(hover 70% / pressed 50%), 모서리 5px(카드 12px) */
+* {box-sizing: border-box;}
+body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 14px; line-height: 21px; color: #000000; background: #F5F5F5; -webkit-font-smoothing: antialiased;}
+::selection {background: #CFE2FC; color: #000000;}
+:focus-visible {outline: 2px solid #3182F6; outline-offset: 2px;}
+.skip-nav {position: absolute; left: 0; top: -100%; z-index: 100; width: 100%; padding: 12px 0; background: #3182F6; color: #ffffff; text-align: center;}
+.skip-nav:focus {top: 0;}
+
+/* ---- 헤더 ---- */
+.hdr {position: sticky; top: 0; z-index: 5; display: flex; align-items: center; min-height: 56px; padding: 0 24px; border-bottom: 1px solid #EFEFEF; background: #FFFFFF;}
+.hdr_title {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.01em;}
+
+/* ---- 본문 ---- */
+.main {max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px;}
+.intro {display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px;}
+.intro_text {min-width: 0;}
+.intro_title {margin: 0 0 4px; font-size: 22px; line-height: 29px; font-weight: 700; letter-spacing: -0.01em;}
+.intro_desc {margin: 0; font-size: 14px; line-height: 21px; color: #777777;}
+.search {position: relative; flex: 0 1 320px; min-width: 0;}
+.search_label {position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;}
+.search_input {display: block; width: 100%; height: 40px; padding: 0 12px; border: 1px solid transparent; border-radius: 5px; font-family: inherit; font-size: 14px; color: #000000; background: #FFFFFF; transition: border-color .15s ease;}
+.search_input::placeholder {color: #C8C8C8;}
+.search_input:focus {outline: none; border-color: #1775F0;}
+.count {margin: 0 0 12px; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777; font-variant-numeric: tabular-nums;}
+
+/* ---- 도구 카드 ---- */
+.tools {display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none;}
+.tool {min-width: 0;}
+.tool_link {display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 12px; color: #000000; text-decoration: none; background: #FFFFFF; transition: opacity .15s ease;}
+.tool_link:hover {opacity: .7;}
+.tool_link:active {opacity: .5;}
+.tool_thumb {position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #EFEFEF;}
+.tool_thumb img {display: block; width: 100%; height: 100%; object-fit: cover;}
+.tool_code {position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 20px; font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 12px; line-height: 18px; color: #555555; white-space: nowrap; overflow: hidden;}
+.tool_code-strong {color: #1775F0; font-weight: 700;}
+.tool_body {display: flex; flex: 1; flex-direction: column; gap: 8px; padding: 20px;}
+.tool_name {margin: 0; font-size: 16px; line-height: 22px; font-weight: 700;}
+.tool_desc {flex: 1; margin: 0; font-size: 14px; line-height: 21px; color: #777777;}
+.tool_meta {display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 0; padding: 0; list-style: none;}
+.tool_tag {display: inline-flex; padding: 4px 8px; border-radius: 5px; font-size: 12px; line-height: 16px; font-weight: 500; color: #555555; background: #F5F5F5;}
+.tool_tag-cycle {color: #1775F0; background: #EEF5FE;}
+.empty {padding: 48px 16px; border-radius: 12px; text-align: center; color: #949494; background: #FFFFFF;}
+
+/* ---- 푸터 ---- */
+.ftr {max-width: 1040px; margin: 0 auto; padding: 0 16px 32px; font-size: 12px; line-height: 18px; color: #949494;}
+.ftr_code {font-family: ui-monospace, Consolas, 'D2Coding', monospace;}
+
+@media (max-width: 767px) {
+    .hdr {padding: 0 16px;}
+    .main {padding-top: 24px;}
+    .search {flex-basis: 100%;}
+    .tools {grid-template-columns: 1fr;}
+}
+@media (prefers-reduced-motion: reduce) {
+    * {transition: none; animation: none;}
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-nav">본문 바로가기</a>
+
+<header class="hdr">
+    <h1 class="hdr_title">도구 모음</h1>
+</header>
+
+<main class="main" id="main-content">
+    <section class="intro">
+        <div class="intro_text">
+            <h2 class="intro_title">업무 마법사</h2>
+            <p class="intro_desc">매달 반복하는 배너·이벤트 작업을 몇 번의 클릭으로 끝내요.</p>
+        </div>
+        <div class="search">
+            <label class="search_label" for="toolSearch">도구 검색</label>
+            <input class="search_input" type="search" id="toolSearch" placeholder="도구 이름이나 설명으로 검색" data-search>
+        </div>
+    </section>
+
+    <p class="count" data-count aria-live="polite"></p>
+    <ul class="tools" data-tools></ul>
+    <p class="empty" data-empty hidden>검색어와 맞는 도구가 없어요.</p>
+</main>
+
+<footer class="ftr">
+    <p>새 마법사는 폴더를 추가하고 <span class="ftr_code">index.html</span>의 <span class="ftr_code">TOOLS</span> 목록에 한 줄 넣으면 여기에 나타나요.</p>
+</footer>
+
+<script>
+// 도구 목록: 새 마법사를 만들면 여기에 추가
+// thumb: 미리보기 이미지 경로(함수면 실행 결과 사용) / code: 이미지 대신 보여줄 코드 줄
+const TOOLS = [
+    {
+        id: 'wallpaper',
+        name: '월간 배너 자동 생성기',
+        desc: '배경·타이틀·목차를 넣어 1440×900 월간 배너를 만들고, 사이트에 올릴 PHP와 이미지를 ZIP으로 저장해요.',
+        href: 'wallpaper/',
+        tags: ['매월', 'JPG', 'PHP', 'ZIP'],
+        thumb: () => `wallpaper/src/assets/background/${getYearMonth()}.jpg`
+    },
+    {
+        id: 'event-php',
+        name: '이벤트 PHP 생성기',
+        desc: '받은 이벤트 이미지 8~12개를 끌어다 놓으면 event_YYMM_이름.php와 이미지 파일을 한 번에 만들어요.',
+        href: 'event-php/',
+        tags: ['매월', 'PHP', '이미지', 'ZIP'],
+        code: ['event_2610_main.php', 'event_2610_20per.php', 'event_2610_cnn.php', '…']
+    }
+];
+
+// 이번 달 YYYYMM (월간 배너 미리보기 배경용)
+function getYearMonth() {
+    const now = new Date();
+    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function createThumb(tool) {
+    const thumb = document.createElement('span');
+    thumb.className = 'tool_thumb';
+    const src = typeof tool.thumb === 'function' ? tool.thumb() : tool.thumb;
+    if (src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.width = 640;
+        img.height = 400;
+        img.loading = 'lazy';
+        // 이미지가 없으면 회색 바탕만 남겨요
+        img.addEventListener('error', () => img.remove());
+        thumb.appendChild(img);
+    } else if (tool.code) {
+        const code = document.createElement('span');
+        code.className = 'tool_code';
+        tool.code.forEach((line, i) => {
+            const row = document.createElement('span');
+            if (i === 0) row.className = 'tool_code-strong';
+            row.textContent = line;
+            code.appendChild(row);
+        });
+        thumb.appendChild(code);
+    }
+    return thumb;
+}
+
+function createCard(tool) {
+    const item = document.createElement('li');
+    item.className = 'tool';
+    item.dataset.toolId = tool.id;
+
+    const link = document.createElement('a');
+    link.className = 'tool_link';
+    link.href = tool.href;
+
+    const body = document.createElement('span');
+    body.className = 'tool_body';
+    const name = document.createElement('h3');
+    name.className = 'tool_name';
+    name.textContent = tool.name;
+    const desc = document.createElement('p');
+    desc.className = 'tool_desc';
+    desc.textContent = tool.desc;
+    const meta = document.createElement('ul');
+    meta.className = 'tool_meta';
+    meta.setAttribute('aria-label', '특징');
+    tool.tags.forEach((tag) => {
+        const li = document.createElement('li');
+        li.className = tag === '매월' ? 'tool_tag tool_tag-cycle' : 'tool_tag';
+        li.textContent = tag;
+        meta.appendChild(li);
+    });
+    body.append(name, desc, meta);
+    link.append(createThumb(tool), body);
+    item.appendChild(link);
+    return item;
+}
+
+function renderTools(keyword) {
+    const listEl = document.querySelector('[data-tools]');
+    const q = keyword.trim().toLowerCase();
+    const matched = TOOLS.filter((tool) => !q || [tool.name, tool.desc, ...tool.tags].join(' ').toLowerCase().includes(q));
+    listEl.replaceChildren(...matched.map(createCard));
+    document.querySelector('[data-empty]').hidden = matched.length > 0;
+    document.querySelector('[data-count]').textContent = q ? `검색 결과 ${matched.length}개` : `도구 ${TOOLS.length}개`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchEl = document.querySelector('[data-search]');
+    searchEl.addEventListener('input', () => renderTools(searchEl.value));
+    renderTools('');
+});
+</script>
+</body>
+</html>

@@ -106,7 +106,7 @@ Montserrat에는 한글 글리프가 없어서, 한글은 자동으로 Elice DX 
 
 ## 8. 저장 규칙
 
-- PNG / JPG: 선택 테두리 없이 1440 × 900으로 저장 (JPG 품질 95, 코드의 `JPG_QUALITY = 0.95`)
+- PNG / JPG: 선택 테두리 없이 1440 × 900으로 저장 (배너 JPG 품질 100, 코드의 `JPG_QUALITY = 1` / 블러 배경 JPG는 품질 95, `BG_JPG_QUALITY = 0.95`)
 - 사이트용 세트는 **ZIP 하나**(`wallpaper_{yy}{mm}.zip`)로 저장: `wallpaper.php` + `wallpaper/wallpaper_{yy}{mm}.jpg` + `wallpaper/wallpaper_bg_{yy}{mm}.jpg`(블러 배경). PHP 안의 이미지 경로도 `wallpaper/…`라서 압축을 풀어 그대로 올리면 됨. 폴더명은 코드의 `IMG_DIR = 'wallpaper/'`. ZIP은 외부 라이브러리 없이 코드 안의 최소 ZIP 생성기(무압축)로 만듦
 - **전환 날짜 (선택)**: 배경 카드의 `선택한 달 내용으로 전환할 날짜·시각`(시각 기본 08:00)을 고르면 PHP 본문에 `<?php if (strtotime("now") > strtotime('YYYY-MM-DD HH:MM:SS') ) { ?>` … `<?php } else { ?>` … `<?php } ?>`가 들어가서, 그 시각 전에는 이전 달 블록(`wrap_ev_bg_{이전달}`, `wallpaper/wallpaper_{이전달}.jpg`)이, 지난 뒤에는 선택한 달 블록이 나옴. 예: 11월 선택 → 전환 시각 전까지 10월, 이후 11월. `<style>`은 한 번만 쓰고 이전 달·선택한 달 CSS가 모두 들어감. 날짜를 비우면 선택한 달만 나오는 기존 PHP. 1월 선택 시 이전 달은 전년 12월. 시각은 서버 시간대 기준. **이전 달 이미지 파일(`wallpaper_*.jpg`, `wallpaper_bg_*.jpg`)은 이미 서버에 있다고 가정(같이 생성되지 않음)**
 - 블러 배경 CSS: `::before { width:120%; height:120%; background-size:cover; filter:blur(10px) }` (부모 `overflow:hidden`)

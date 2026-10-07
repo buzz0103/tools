@@ -1547,7 +1547,8 @@
   window.addEventListener('touchend', pointerUp);
 
   // ---- export ----
-  const JPG_QUALITY = 0.95; // JPG 저장 품질 (0~1, 0.95 = 95)
+  const JPG_QUALITY = 1;       // 배너 JPG 저장 품질 (0~1, 1 = 100)
+  const BG_JPG_QUALITY = 0.95; // 블러 배경 JPG 저장 품질 (0.95 = 95)
   function exportAs(type, filename, returnOnly){
     const prevSelected = selectedId;
     selectedId = null;
@@ -1682,7 +1683,7 @@
     tctx.fillStyle = '#ffffff';
     tctx.fillRect(0,0,tmp.width,tmp.height);
     tctx.drawImage(bgImage, 0, 0, tmp.width, tmp.height);
-    return tmp.toDataURL('image/jpeg', JPG_QUALITY);
+    return tmp.toDataURL('image/jpeg', BG_JPG_QUALITY);
   }
   // 해당 월의 마크업 (주석 + div). 연/월에 따라 id·이미지 파일명이 정해져요.
   function wallpaperMarkup(yy, mm){

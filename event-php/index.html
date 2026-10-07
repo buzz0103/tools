@@ -24,8 +24,8 @@ body {display: flex; flex-direction: column; margin: 0; font-family: 'LINE Seed 
 .hdr_home:focus-visible {outline: 2px solid #1775F0; outline-offset: 2px;}
 .hdr_actions {display: flex; flex-wrap: wrap; align-items: center; gap: 8px;}
 /* ---- 본문 ---- */
-.main {display: grid; flex: 1 0 auto; gap: 16px; width: 100%; max-width: 1040px; margin: 0 auto; padding: 16px 16px 48px;}
-.panel {display: grid; gap: 24px; min-width: 0; padding: 24px; border-radius: 12px; background: #FFFFFF;}
+.main {display: grid; flex: 1 0 auto; grid-template-columns: minmax(0, 1fr); gap: 16px; width: 100%; max-width: 1040px; margin: 0 auto; padding: 16px 16px 48px;}
+.panel {display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; padding: 24px; border-radius: 12px; background: #FFFFFF;}
 .panel[hidden] {display: none;}
 .panel_head {display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;}
 .panel h2 {display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
@@ -99,6 +99,27 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
 .meta {font-size: 12px; line-height: 18px; color: #949494;}
 .x {width: 32px; height: 32px; padding: 0; border: 0; border-radius: 5px; font-size: 20px; line-height: 1; color: #949494; background: transparent;}
 .x:hover {color: #E8332E;}
+.thumb_col {display: grid; justify-items: center; gap: 6px;}
+.add_slot {padding: 0; border: 0; font-size: 12px; line-height: 16px; color: #949494; background: none;}
+.add_slot:hover {color: #1775F0;}
+
+/* ---- 여러 장 항목 (메인 이벤트 등) ---- */
+.multi_badge {display: grid; place-items: center; width: 112px; height: 84px; border-radius: 5px; font-size: 13px; line-height: 18px; font-weight: 700; text-align: center; color: #1775F0; background: #EEF5FE;}
+.item.off .multi_badge, .item.off .slots {opacity: .4;}
+.slots {display: grid; grid-column: 2 / 4; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px;}
+.slot {display: grid; align-content: start; gap: 8px; min-width: 0; padding: 12px; border: 1px solid #EFEFEF; border-radius: 7px; background: #FFFFFF;}
+.slot.over {border-color: #1775F0; background: #EEF5FE;}
+.slot_head {display: flex; align-items: center; justify-content: space-between; height: 24px; font-size: 13px; font-weight: 700;}
+.x_small {width: 24px; height: 24px; font-size: 16px;}
+.slot .thumb {width: 100%; height: auto; aspect-ratio: 16 / 10;}
+.slot_name {color: #777777; overflow-wrap: anywhere;}
+.slot_check {display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; cursor: pointer;}
+.slot_check input {width: 16px; height: 16px;}
+.slot_link {display: grid; gap: 6px;}
+.slot_link[hidden] {display: none;}
+.slot input[type="text"] {height: 32px; padding: 0 8px; font-size: 12px;}
+.slot_add {place-items: center; min-height: 120px; border-style: dashed; border-color: #DFDFDF; font-size: 13px; font-weight: 500; color: #777777;}
+.slot_add:hover {border-color: #1775F0; color: #1775F0;}
 
 /* ---- 상태 표시 ---- */
 .pill {display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 12px; line-height: 16px; font-weight: 500;}
@@ -145,6 +166,8 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
     .item .x {grid-column: 3; justify-self: end;}
     .thumb {width: 80px; height: 64px;}
     .fields .row {grid-template-columns: 1fr;}
+    .slots {grid-column: 1 / -1;}
+    .multi_badge {width: 80px; height: 64px;}
 }
 @media (prefers-reduced-motion: reduce) {
     * {transition: none; animation: none;}
@@ -198,10 +221,21 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
                     <label class="field">이미지 파일명 규칙
                         <input type="text" id="imgName" class="mono">
                     </label>
+                    <label class="field">여러 장일 때 이름 뒤에 붙는 번호 ({nn}=01, {n}=1)
+                        <input type="text" id="multiSuffix" class="mono">
+                    </label>
                 </div>
-                <label class="field">PHP 내용 ({{src}}, {{alt}} 자리에 값이 들어가요)
+                <label class="field">PHP 전체 틀 ({{images}} 자리에 이미지 줄들이 들어가요)
                     <textarea id="template" spellcheck="false"></textarea>
                 </label>
+                <div class="grid2">
+                    <label class="field">이미지 한 줄 ({{src}}, {{alt}})
+                        <input type="text" id="imgTpl" class="mono" spellcheck="false">
+                    </label>
+                    <label class="field">링크 걸 때 ({{href}}, {{target}}, {{img}})
+                        <input type="text" id="linkTpl" class="mono" spellcheck="false">
+                    </label>
+                </div>
                 <div><button type="button" class="btn" id="resetSettings">기본값으로 되돌리기</button></div>
             </div>
         </details>
@@ -258,11 +292,16 @@ const DEFAULT_SETTINGS = {
     imgDir: 'resource/images/event/{yyyy}/',
     phpName: 'event_{yymm}_{key}.php',
     imgName: 'detail_{yyyymm}_{img}',
-    template: '<div class="event_detail_page" >\n<img src="{{src}}" alt="{{alt}}" class="align_center" />\n</div>'
+    multiSuffix: '_{nn}',
+    template: '<div class="event_detail_page" >\n{{images}}\n</div>',
+    imgTpl: '<img src="{{src}}" alt="{{alt}}" class="align_center" />',
+    linkTpl: '<a href="{{href}}"{{target}}>{{img}}</a>'
 };
-// [PHP 이름, 이미지 이름, 대체텍스트]
+const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS);
+// [PHP 이름, 이미지 이름, 대체텍스트, 여러 장 설정]
+// 여러 장 설정: 장마다 { link: 링크를 걸지 } — main은 4장이고 2번째 이미지에 링크
 const DEFAULT_ITEMS = [
-    ['main', 'main', ''],
+    ['main', 'main', '', [{}, { link: true }, {}, {}]],
     ['early', 'early', ''],
     ['10per', '10per', ''],
     ['20per', 'uni20per', '대학교 신입생 수강료 20% 할인'],
@@ -277,21 +316,35 @@ const STORE_KEY = 'eventPhpWizard.v1';
 
 // ===== 상태 =====
 let nextId = 1;
-const state = { year: 0, month: 0, settings: { ...DEFAULT_SETTINGS }, items: [], selectedFile: 0 };
+const state = { year: 0, month: 0, settings: { ...DEFAULT_SETTINGS }, items: [], selectedFile: 0, errorCount: 0 };
 
-function createItem(phpKey, imgKey, alt, on = true) {
-    return { id: nextId++, on, phpKey, imgKey, alt, file: null, url: '', w: 0, h: 0, isNew: false };
+// 이미지 한 장(칸)
+function createSlot(opt = {}) {
+    return { file: null, url: '', w: 0, h: 0, link: !!opt.link, href: opt.href || '', blank: !!opt.blank, alt: opt.alt || '' };
+}
+// multi: 여러 장 항목인지 / slots: 여러 장 설정 목록
+function createItem(phpKey, imgKey, alt, on = true, slots = null) {
+    const multi = Array.isArray(slots);
+    return {
+        id: nextId++, on, phpKey, imgKey, alt, isNew: false, multi,
+        images: multi ? slots.map((o) => createSlot(o)) : [createSlot()]
+    };
 }
 function getDefaultItems() {
-    return DEFAULT_ITEMS.map(([p, i, a]) => createItem(p, i, a));
+    return DEFAULT_ITEMS.map(([p, i, a, slots]) => createItem(p, i, a, true, slots || null));
 }
+function hasAnyFile(it) { return it.images.some((sl) => sl.file); }
+function hasAllFiles(it) { return it.images.every((sl) => sl.file); }
 
 // ===== 저장/불러오기 (이미지 파일은 저장하지 않음) =====
 function saveState() {
     try {
         const data = {
             settings: state.settings,
-            items: state.items.map(({ on, phpKey, imgKey, alt }) => ({ on, phpKey, imgKey, alt }))
+            items: state.items.map(({ on, phpKey, imgKey, alt, multi, images }) => ({
+                on, phpKey, imgKey, alt, multi,
+                images: images.map(({ link, href, blank, alt: slotAlt }) => ({ link, href, blank, alt: slotAlt }))
+            }))
         };
         localStorage.setItem(STORE_KEY, JSON.stringify(data));
     } catch (e) { /* 저장 불가 환경은 무시 */ }
@@ -301,8 +354,23 @@ function loadState() {
         const raw = localStorage.getItem(STORE_KEY);
         if (!raw) return false;
         const data = JSON.parse(raw);
-        state.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
-        state.items = (data.items || []).map((it) => createItem(it.phpKey || '', it.imgKey || '', it.alt || '', it.on !== false));
+        const saved = data.settings || {};
+        // 예전 형식(템플릿 하나에 {{src}})은 새 기본 템플릿으로 바꿔요
+        if (saved.template && !saved.template.includes('{{images}}')) {
+            delete saved.template; delete saved.imgTpl; delete saved.linkTpl;
+        }
+        state.settings = { ...DEFAULT_SETTINGS, ...saved };
+        state.items = (data.items || []).map((d) => {
+            let slots = d.multi && Array.isArray(d.images) ? d.images : null;
+            // 예전에 저장된 목록에는 여러 장 정보가 없어서 기본 목록에서 가져와요
+            if (d.multi === undefined) {
+                const def = DEFAULT_ITEMS.find(([p]) => p === d.phpKey);
+                if (def && def[3]) slots = def[3];
+            }
+            const it = createItem(d.phpKey || '', d.imgKey || '', d.alt || '', d.on !== false, slots);
+            if (!it.multi && d.images && d.images[0]) Object.assign(it.images[0], createSlot(d.images[0]));
+            return it;
+        });
         return state.items.length > 0;
     } catch (e) { return false; }
 }
@@ -315,17 +383,22 @@ function getDateTokens() {
 }
 function fillTokens(pattern, extra = {}) {
     const t = { ...getDateTokens(), ...extra };
-    return pattern.replace(/\{(yyyy|yymm|yyyymm|key|img)\}/g, (_, k) => t[k] ?? '');
+    return pattern.replace(/\{(yyyy|yymm|yyyymm|key|img|nn|n)\}/g, (_, k) => t[k] ?? '');
 }
-function getExt(it) {
-    if (!it.file) return 'jpg';
-    const m = /\.([a-z0-9]+)$/i.exec(it.file.name);
+function getExt(slot) {
+    if (!slot.file) return 'jpg';
+    const m = /\.([a-z0-9]+)$/i.exec(slot.file.name);
     const ext = m ? m[1].toLowerCase() : 'jpg';
     return ext === 'jpeg' ? 'jpg' : ext;
 }
 function getPhpName(it) { return fillTokens(state.settings.phpName, { key: it.phpKey }); }
-function getImgName(it) { return fillTokens(state.settings.imgName, { img: it.imgKey || it.phpKey }) + '.' + getExt(it); }
-function getImgSrc(it) { return fillTokens(state.settings.imgUrl) + getImgName(it); }
+// 여러 장 항목은 이름 뒤에 _01, _02 … 를 붙여요
+function getImgName(it, idx = 0) {
+    const base = fillTokens(state.settings.imgName, { img: it.imgKey || it.phpKey });
+    const suffix = it.multi ? fillTokens(state.settings.multiSuffix, { nn: String(idx + 1).padStart(2, '0'), n: String(idx + 1) }) : '';
+    return base + suffix + '.' + getExt(it.images[idx]);
+}
+function getImgSrc(it, idx) { return fillTokens(state.settings.imgUrl) + getImgName(it, idx); }
 function joinPath(dir, name) {
     const d = fillTokens(dir).replace(/^\/+/, '');
     return d && !d.endsWith('/') ? d + '/' + name : d + name;
@@ -336,10 +409,18 @@ function escapeAttr(s) {
 function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+function fillTpl(tpl, values) {
+    return Object.entries(values).reduce((out, [k, v]) => out.split(`{{${k}}}`).join(v), tpl);
+}
 function buildPhp(it) {
-    return state.settings.template
-        .split('{{src}}').join(getImgSrc(it))
-        .split('{{alt}}').join(escapeAttr(it.alt.trim()));
+    const { template, imgTpl, linkTpl } = state.settings;
+    const lines = it.images.map((sl, i) => {
+        const alt = (sl.alt.trim() || it.alt.trim());
+        const img = fillTpl(imgTpl, { src: getImgSrc(it, i), alt: escapeAttr(alt) });
+        if (!sl.link || !sl.href.trim()) return img;
+        return fillTpl(linkTpl, { href: escapeAttr(sl.href.trim()), target: sl.blank ? ' target="_blank"' : '', img });
+    });
+    return fillTpl(template, { images: lines.join('\n') });
 }
 
 // ===== 검사 =====
@@ -347,12 +428,16 @@ const KEY_RE = /^[A-Za-z0-9_-]+$/;
 function getItemProblems(it) {
     const list = [];
     // 파일명으로 짝을 못 찾아 새로 생긴 항목은 이름을 확인하기 전까지 저장하지 않아요
-    if (it.isNew) list.push(['err', `파일명으로 항목을 못 찾았어요. PHP 이름을 고치거나 이미지를 알맞은 칸으로 끌어 옮기세요`]);
+    if (it.isNew) list.push(['err', '파일명으로 항목을 못 찾았어요. PHP 이름을 고치거나 이미지를 알맞은 칸으로 끌어 옮기세요']);
     if (!it.phpKey) list.push(['err', 'PHP 이름이 비어 있어요']);
     else if (!KEY_RE.test(it.phpKey)) list.push(['err', 'PHP 이름에는 영문·숫자·_·- 만 쓸 수 있어요']);
     if (it.imgKey && !KEY_RE.test(it.imgKey)) list.push(['err', '이미지 이름에는 영문·숫자·_·- 만 쓸 수 있어요']);
-    if (!it.file) list.push(['warn', '이미지가 없어요']);
-    if (!it.alt.trim()) list.push(['warn', '대체텍스트(alt)가 비어 있어요']);
+    it.images.forEach((sl, i) => {
+        const label = it.multi ? `이미지 ${i + 1}` : '이미지';
+        if (!sl.file) list.push(['warn', `${label}가 없어요`]);
+        if (sl.link && !sl.href.trim()) list.push(['err', `${label} 링크 주소가 비어 있어요`]);
+    });
+    if (!it.alt.trim() && it.images.some((sl) => !sl.alt.trim())) list.push(['warn', '대체텍스트(alt)가 비어 있어요']);
     return list;
 }
 function getDuplicateKeys() {
@@ -367,43 +452,73 @@ function deriveKey(fileName) {
         .replace(/^detail_\d{6}_/, '').replace(/^event_\d{4}_/, '')
         .replace(/[^a-z0-9_-]/g, '');
 }
-function setItemFile(it, file) {
-    if (it.url) URL.revokeObjectURL(it.url);
-    it.file = file;
-    it.url = file ? URL.createObjectURL(file) : '';
-    it.w = 0; it.h = 0;
+function setSlotFile(slot, file, onLoad) {
+    if (slot.url) URL.revokeObjectURL(slot.url);
+    slot.file = file;
+    slot.url = file ? URL.createObjectURL(file) : '';
+    slot.w = 0; slot.h = 0;
     if (file) {
         const img = new Image();
-        img.onload = () => { it.w = img.naturalWidth; it.h = img.naturalHeight; updateItemRow(it); };
-        img.src = it.url;
+        img.onload = () => { slot.w = img.naturalWidth; slot.h = img.naturalHeight; if (onLoad) onLoad(); };
+        img.src = slot.url;
     }
 }
-// 파일명에 가장 길게 들어맞는 이름을 가진 항목을 찾아요
+function setItemFile(it, idx, file) {
+    setSlotFile(it.images[idx], file, () => updateItemRow(it));
+}
+// 파일명에 가장 길게 들어맞는 이름을 가진 항목을 찾아요 (여러 장 항목은 여러 파일을 받을 수 있어요)
 function findMatch(name, taken) {
     const lower = name.toLowerCase();
-    let best = null; let bestScore = 0;
+    let best = null; let bestKey = ''; let bestScore = 0;
     state.items.forEach((it) => {
-        if (taken.has(it.id)) return;
+        if (!it.multi && taken.has(it.id)) return;
         [[it.imgKey, 1], [it.phpKey, 0]].forEach(([k, bonus]) => {
             if (!k) return;
             const key = k.toLowerCase();
             // 10per 가 uni10per 등 다른 이름 안에 우연히 들어간 경우를 줄이기 위해 길이로 점수
             if (lower.includes(key)) {
                 const score = key.length * 2 + bonus;
-                if (score > bestScore) { best = it; bestScore = score; }
+                if (score > bestScore) { best = it; bestKey = key; bestScore = score; }
             }
         });
     });
-    return best;
+    return best ? { it: best, key: bestKey } : null;
+}
+// 여러 장 항목에서 파일이 들어갈 칸: 이름 뒤 번호(main_02, main2)가 있으면 그 칸, 없으면 빈 칸
+function pickSlot(it, fileName, key, filled) {
+    const lower = fileName.replace(/\.[^.]+$/, '').toLowerCase();
+    const m = new RegExp(key.replace(/[-]/g, '\\-') + '[ _-]?0*(\\d{1,2})(?!.*\\d)').exec(lower);
+    if (m) {
+        const idx = Number(m[1]) - 1;
+        if (idx >= 0) {
+            while (it.images.length <= idx) it.images.push(createSlot());
+            if (!filled.has(idx)) return idx;
+        }
+    }
+    let idx = it.images.findIndex((sl, i) => !filled.has(i) && !sl.file);
+    if (idx < 0) idx = it.images.findIndex((sl, i) => !filled.has(i));
+    if (idx < 0) { it.images.push(createSlot()); idx = it.images.length - 1; }
+    return idx;
 }
 function handleBulkFiles(fileList) {
     const files = [...fileList].filter((f) => f.type.startsWith('image/'));
+    if (!files.length) return;
     const taken = new Set();
+    const filledByItem = new Map();
     // 긴 파일명부터 처리해야 짧은 이름에 먼저 빼앗기지 않아요
-    files.sort((a, b) => b.name.length - a.name.length);
+    files.sort((a, b) => b.name.length - a.name.length || a.name.localeCompare(b.name));
     files.forEach((file) => {
-        let it = findMatch(file.name, taken);
-        if (!it) {
+        const match = findMatch(file.name, taken);
+        let it; let idx = 0;
+        if (match) {
+            it = match.it;
+            if (it.multi) {
+                if (!filledByItem.has(it.id)) filledByItem.set(it.id, new Set());
+                const filled = filledByItem.get(it.id);
+                idx = pickSlot(it, file.name, match.key, filled);
+                filled.add(idx);
+            }
+        } else {
             const key = deriveKey(file.name);
             // 이미지 이름은 비워 두면 PHP 이름을 따라가요 (PHP 이름만 고치면 둘 다 바뀜)
             it = createItem(key, '', '');
@@ -412,25 +527,48 @@ function handleBulkFiles(fileList) {
         }
         it.on = true;
         taken.add(it.id);
-        setItemFile(it, file);
+        setItemFile(it, idx, file);
     });
-    // 이미지가 안 들어간 항목은 이번 달에 없는 것으로 보고 꺼요
-    state.items.forEach((it) => { if (!it.file) it.on = false; });
+    // 이미지가 하나도 안 들어간 항목은 이번 달에 없는 것으로 보고 꺼요
+    state.items.forEach((it) => { if (!hasAnyFile(it)) it.on = false; });
     renderItems();
     saveState();
 }
 
 // ===== 2. 항목 목록 그리기 =====
 const itemsEl = document.getElementById('items');
+// 썸네일 칸 하나 (클릭해서 고르기, 끌어서 옮기기, 파일 떨어뜨리기)
+function bindThumb(thumb, it, idx) {
+    const pick = () => { pendingSlot = { it, idx }; oneInput.click(); };
+    thumb.addEventListener('click', pick);
+    thumb.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    thumb.draggable = true;
+    thumb.addEventListener('dragstart', (e) => {
+        if (!it.images[idx].file) { e.preventDefault(); return; }
+        e.dataTransfer.setData('text/x-slot', `${it.id}:${idx}`);
+        e.dataTransfer.effectAllowed = 'move';
+    });
+}
+function bindDropTarget(el, it, idx) {
+    el.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); el.classList.add('over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('over'));
+    el.addEventListener('drop', (e) => {
+        e.preventDefault(); e.stopPropagation(); el.classList.remove('over');
+        const src = e.dataTransfer.getData('text/x-slot');
+        if (src) { const [id, i] = src.split(':').map(Number); moveImage(id, i, it, idx); return; }
+        const file = [...e.dataTransfer.files].find((f) => f.type.startsWith('image/'));
+        if (file) { it.on = true; setItemFile(it, idx, file); renderItems(); }
+    });
+}
 function renderItems() {
     itemsEl.innerHTML = '';
     state.items.forEach((it) => {
         const row = document.createElement('div');
-        row.className = 'item';
+        row.className = it.multi ? 'item item_multi' : 'item';
         row.dataset.id = it.id;
         row.innerHTML = `
             <div class="lead"><span class="num"></span><input type="checkbox" id="on-${it.id}" aria-label="이번 달에 만들기"></div>
-            <div class="thumb" tabindex="0" role="button" aria-label="이미지 선택"></div>
+            <div class="thumb_col"></div>
             <div class="fields">
                 <div class="row">
                     <label class="field">PHP 이름<input type="text" id="php-${it.id}" class="mono" data-k="phpKey" spellcheck="false"></label>
@@ -453,27 +591,21 @@ function renderItems() {
                 saveState();
             });
         });
-        const thumb = row.querySelector('.thumb');
-        const pick = () => { pendingRow = it; oneInput.click(); };
-        thumb.addEventListener('click', pick);
-        thumb.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
-        thumb.draggable = true;
-        thumb.addEventListener('dragstart', (e) => {
-            if (!it.file) { e.preventDefault(); return; }
-            e.dataTransfer.setData('text/x-item-id', String(it.id));
-            e.dataTransfer.effectAllowed = 'move';
-        });
-        row.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); row.classList.add('over'); });
-        row.addEventListener('dragleave', () => row.classList.remove('over'));
-        row.addEventListener('drop', (e) => {
-            e.preventDefault(); e.stopPropagation(); row.classList.remove('over');
-            const srcId = Number(e.dataTransfer.getData('text/x-item-id'));
-            if (srcId) { moveImage(srcId, it); return; }
-            const file = [...e.dataTransfer.files].find((f) => f.type.startsWith('image/'));
-            if (file) { it.on = true; setItemFile(it, file); renderItems(); }
-        });
+        const col = row.querySelector('.thumb_col');
+        if (it.multi) {
+            col.innerHTML = `<div class="multi_badge">이미지<br>${it.images.length}장</div>`;
+            row.appendChild(renderSlots(it));
+        } else {
+            col.innerHTML = `<div class="thumb" tabindex="0" role="button" aria-label="이미지 선택"></div>
+                <button type="button" class="add_slot">+ 여러 장으로</button>`;
+            bindThumb(col.querySelector('.thumb'), it, 0);
+            bindDropTarget(row, it, 0);
+            col.querySelector('.add_slot').addEventListener('click', () => {
+                it.multi = true; it.images.push(createSlot()); renderItems(); saveState();
+            });
+        }
         row.querySelector('.x').addEventListener('click', () => {
-            setItemFile(it, null);
+            it.images.forEach((sl) => setSlotFile(sl, null));
             state.items = state.items.filter((x) => x !== it);
             renderItems(); saveState();
         });
@@ -482,34 +614,100 @@ function renderItems() {
     });
     updateCount();
 }
-// 다른 항목의 이미지를 이 항목으로 옮겨요 (이 항목에 이미지가 있으면 서로 바꿔요)
-function moveImage(srcId, target) {
+// 여러 장 항목: 장마다 썸네일 · 링크 · alt
+function renderSlots(it) {
+    const wrap = document.createElement('div');
+    wrap.className = 'slots';
+    it.images.forEach((sl, idx) => {
+        const card = document.createElement('div');
+        card.className = 'slot';
+        card.dataset.idx = idx;
+        card.innerHTML = `
+            <div class="slot_head"><span>이미지 ${idx + 1}</span>
+                <button type="button" class="x x_small" aria-label="이미지 ${idx + 1} 칸 삭제" title="이 칸 삭제">×</button></div>
+            <div class="thumb" tabindex="0" role="button" aria-label="이미지 ${idx + 1} 선택"></div>
+            <div class="slot_name mono"></div>
+            <label class="slot_check"><input type="checkbox" id="link-${it.id}-${idx}" data-s="link"> 링크 걸기</label>
+            <div class="slot_link" ${sl.link ? '' : 'hidden'}>
+                <input type="text" id="href-${it.id}-${idx}" class="mono" data-s="href" placeholder="https://" spellcheck="false" aria-label="이미지 ${idx + 1} 링크 주소">
+                <label class="slot_check"><input type="checkbox" id="blank-${it.id}-${idx}" data-s="blank"> 새 창으로 열기</label>
+            </div>
+            <input type="text" id="salt-${it.id}-${idx}" data-s="alt" placeholder="alt (비우면 위 alt)" aria-label="이미지 ${idx + 1} 대체텍스트">`;
+        card.querySelectorAll('[data-s]').forEach((input) => {
+            const k = input.dataset.s;
+            if (input.type === 'checkbox') input.checked = sl[k]; else input.value = sl[k];
+            input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
+                sl[k] = input.type === 'checkbox' ? input.checked : input.value;
+                if (k === 'link') card.querySelector('.slot_link').hidden = !sl.link;
+                if (k === 'link' && sl.link) card.querySelector('[data-s="href"]').focus();
+                updateItemRow(it);
+                saveState();
+            });
+        });
+        bindThumb(card.querySelector('.thumb'), it, idx);
+        bindDropTarget(card, it, idx);
+        card.querySelector('.x_small').addEventListener('click', () => {
+            setSlotFile(sl, null);
+            it.images.splice(idx, 1);
+            // 마지막 한 칸을 지우면 한 장짜리 항목으로 돌아가요
+            if (!it.images.length) { it.images.push(createSlot()); it.multi = false; }
+            renderItems(); saveState();
+        });
+        wrap.appendChild(card);
+    });
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'slot slot_add';
+    add.textContent = '+ 이미지 칸 추가';
+    add.addEventListener('click', () => { it.images.push(createSlot()); renderItems(); saveState(); });
+    wrap.appendChild(add);
+    return wrap;
+}
+// 다른 칸의 이미지를 이 칸으로 옮겨요 (이 칸에 이미지가 있으면 서로 바꿔요)
+function moveImage(srcId, srcIdx, target, targetIdx) {
     const src = state.items.find((x) => x.id === srcId);
-    if (!src || src === target || !src.file) return;
-    const srcFile = src.file;
-    const targetFile = target.file;
-    setItemFile(target, srcFile);
-    setItemFile(src, targetFile);
+    if (!src || !src.images[srcIdx] || !src.images[srcIdx].file) return;
+    if (src === target && srcIdx === targetIdx) return;
+    const srcFile = src.images[srcIdx].file;
+    const targetFile = target.images[targetIdx].file;
+    setItemFile(target, targetIdx, srcFile);
+    setItemFile(src, srcIdx, targetFile);
     target.on = true;
-    if (!src.file) {
+    if (!hasAnyFile(src)) {
         // 자동으로 생긴 새 항목이 비면 지우고, 기존 항목이 비면 꺼요
         if (src.isNew) state.items = state.items.filter((x) => x !== src);
         else src.on = false;
     }
     renderItems(); saveState();
 }
+function fillThumb(thumb, slot) {
+    thumb.classList.toggle('has', !!slot.url);
+    thumb.innerHTML = slot.url ? `<img src="${slot.url}" alt="">` : '이미지<br>넣기';
+    thumb.title = slot.url ? '다른 칸으로 끌어서 옮길 수 있어요' : '';
+}
+function getSizeText(slot) {
+    if (!slot.file) return '';
+    return `${slot.file.name}${slot.w ? ` · ${slot.w}×${slot.h}` : ''} · ${Math.round(slot.file.size / 1024)}KB`;
+}
 function updateItemRow(it) {
     const row = itemsEl.querySelector(`.item[data-id="${it.id}"]`);
     if (!row) return;
     row.classList.toggle('off', !it.on);
-    const thumb = row.querySelector('.thumb');
-    thumb.classList.toggle('has', !!it.url);
-    thumb.innerHTML = it.url ? `<img src="${it.url}" alt="">` : '이미지<br>넣기';
-    thumb.title = it.url ? '다른 항목으로 끌어서 옮길 수 있어요' : '';
-    row.querySelector('.out').innerHTML =
-        `<span>${escapeHtml(getPhpName(it))}</span><span>${escapeHtml(getImgName(it))}</span>`;
+    if (it.multi) {
+        row.querySelectorAll('.slot[data-idx]').forEach((card) => {
+            const idx = Number(card.dataset.idx);
+            fillThumb(card.querySelector('.thumb'), it.images[idx]);
+            card.querySelector('.slot_name').textContent = getImgName(it, idx);
+            card.title = getSizeText(it.images[idx]);
+        });
+        row.querySelector('.out').innerHTML = `<span>${escapeHtml(getPhpName(it))}</span><span>이미지 ${it.images.length}장</span>`;
+    } else {
+        fillThumb(row.querySelector('.thumb'), it.images[0]);
+        row.querySelector('.out').innerHTML =
+            `<span>${escapeHtml(getPhpName(it))}</span><span>${escapeHtml(getImgName(it, 0))}</span>`;
+    }
     const problems = it.on ? getItemProblems(it) : [];
-    const size = it.file ? `${it.file.name}${it.w ? ` · ${it.w}×${it.h}` : ''} · ${Math.round(it.file.size / 1024)}KB` : '';
+    const size = it.multi ? '' : getSizeText(it.images[0]);
     const pills = problems.length
         ? problems.map(([lv, msg]) => `<span class="pill ${lv}">${msg}</span>`).join(' ')
         : (it.on ? '<span class="pill ok">준비됨</span>' : '');
@@ -535,7 +733,7 @@ function updateCount() {
     updateNumbers();
     updateCheckAll();
     const on = state.items.filter((it) => it.on);
-    const withImg = on.filter((it) => it.file).length;
+    const withImg = on.filter(hasAllFiles).length;
     document.getElementById('itemCount').textContent = `총 ${on.length}개 · 이미지 ${withImg}/${on.length}`;
     scheduleReview();
 }
@@ -558,7 +756,9 @@ function getOutputFiles() {
     const out = [];
     state.items.filter((it) => it.on && it.phpKey).forEach((it) => {
         out.push({ type: 'php', path: joinPath(state.settings.phpDir, getPhpName(it)), content: buildPhp(it), item: it });
-        if (it.file) out.push({ type: 'img', path: joinPath(state.settings.imgDir, getImgName(it)), file: it.file, item: it });
+        it.images.forEach((sl, idx) => {
+            if (sl.file) out.push({ type: 'img', path: joinPath(state.settings.imgDir, getImgName(it, idx)), file: sl.file, slot: sl, item: it });
+        });
     });
     return out;
 }
@@ -618,7 +818,7 @@ function renderReview() {
     } else {
         box.innerHTML = `<div class="head"><span class="mono hint">${escapeHtml(f.path)}</span>
             <button type="button" class="btn small outline" id="dlOne">이 파일 받기</button></div>
-            <img src="${f.item.url}" alt="${escapeAttr(f.item.alt)}">`;
+            <img src="${f.slot.url}" alt="${escapeAttr(f.slot.alt || f.item.alt)}">`;
         document.getElementById('dlOne').addEventListener('click', () => downloadOne(f));
     }
 }
@@ -684,18 +884,16 @@ async function saveZip() {
 
 // ===== 1. 기본 설정 =====
 function renderNamePreview() {
-    const sample = state.items.find((it) => it.on && it.phpKey) || createItem('20per', 'uni20per', '대학교 신입생 수강료 20% 할인');
+    const sample = state.items.find((it) => it.on && it.phpKey && !it.multi) || createItem('20per', 'uni20per', '대학교 신입생 수강료 20% 할인');
     document.getElementById('namePreview').textContent =
-        `${joinPath(state.settings.phpDir, getPhpName(sample))}\n${joinPath(state.settings.imgDir, getImgName(sample))}\n\n${buildPhp(sample)}`;
+        `${joinPath(state.settings.phpDir, getPhpName(sample))}\n${joinPath(state.settings.imgDir, getImgName(sample, 0))}\n\n${buildPhp(sample)}`;
 }
 function fillSettingsInputs() {
-    ['imgUrl', 'phpDir', 'imgDir', 'phpName', 'imgName', 'template'].forEach((k) => {
-        document.getElementById(k).value = state.settings[k];
-    });
+    SETTING_KEYS.forEach((k) => { document.getElementById(k).value = state.settings[k]; });
 }
 
 // ===== 초기화 =====
-let pendingRow = null;
+let pendingSlot = null;
 const oneInput = document.getElementById('oneInput');
 const bulkInput = document.getElementById('bulkInput');
 
@@ -715,7 +913,7 @@ function init() {
     monthEl.addEventListener('change', () => { state.month = Number(monthEl.value); refreshAll(); });
 
     fillSettingsInputs();
-    ['imgUrl', 'phpDir', 'imgDir', 'phpName', 'imgName', 'template'].forEach((k) => {
+    SETTING_KEYS.forEach((k) => {
         document.getElementById(k).addEventListener('input', (e) => { state.settings[k] = e.target.value; refreshAll(); saveState(); });
     });
     document.getElementById('resetSettings').addEventListener('click', () => {
@@ -727,11 +925,15 @@ function init() {
     drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bulkInput.click(); } });
     drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); handleBulkFiles(e.dataTransfer.files); });
+    drop.addEventListener('drop', (e) => { e.preventDefault(); e.stopPropagation(); drop.classList.remove('over'); handleBulkFiles(e.dataTransfer.files); });
     bulkInput.addEventListener('change', () => { handleBulkFiles(bulkInput.files); bulkInput.value = ''; });
     oneInput.addEventListener('change', () => {
-        if (pendingRow && oneInput.files[0]) { pendingRow.on = true; setItemFile(pendingRow, oneInput.files[0]); renderItems(); }
-        pendingRow = null; oneInput.value = '';
+        if (pendingSlot && oneInput.files[0]) {
+            pendingSlot.it.on = true;
+            setItemFile(pendingSlot.it, pendingSlot.idx, oneInput.files[0]);
+            renderItems();
+        }
+        pendingSlot = null; oneInput.value = '';
     });
     // 목록 밖에 떨어뜨려도 일괄 처리
     document.addEventListener('dragover', (e) => e.preventDefault());
@@ -747,13 +949,14 @@ function init() {
         if (last) last.focus();
     });
     document.getElementById('clearImages').addEventListener('click', () => {
-        state.items.forEach((it) => setItemFile(it, null)); renderItems();
+        state.items.forEach((it) => it.images.forEach((sl) => setSlotFile(sl, null))); renderItems();
     });
     document.getElementById('resetItems').addEventListener('click', () => {
-        state.items.forEach((it) => setItemFile(it, null));
+        state.items.forEach((it) => it.images.forEach((sl) => setSlotFile(sl, null)));
         state.items = getDefaultItems(); renderItems(); saveState();
     });
     document.getElementById('saveZip').addEventListener('click', saveZip);
+
     renderNamePreview();
     renderItems();
 }

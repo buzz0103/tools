@@ -338,6 +338,11 @@
           <option value="">선택 안 함 (직접 업로드)</option>
         </select>
       </div>
+      <div class="field row tight" style="margin:0 0 16px;">
+        <label for="pointColor" style="margin:0;flex:0 0 auto;">포인트 컬러</label>
+        <input type="color" id="pointColor" style="flex:0 0 40px;">
+        <span class="hint" style="margin:0;">타이틀·목차 포인트 컬러를 한 번에 바꿔요</span>
+      </div>
       <label class="file-drop" id="bgDrop">
         배경 이미지 등록
         <input type="file" id="bgInput" accept="image/*">
@@ -360,11 +365,6 @@
         <svg class="acc-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="acc-body">
-      <div class="field row tight" style="margin-bottom:16px;">
-        <label for="pointColor" style="margin:0;flex:0 0 auto;">포인트 컬러</label>
-        <input type="color" id="pointColor" style="flex:0 0 40px;">
-        <span class="hint" style="margin:0;">타이틀 4줄에 한 번에 적용</span>
-      </div>
       <div id="titleRows"></div>
       <div class="hint">글자를 누르면 캔버스에서 바로 드래그해 옮길 수도 있어요. X는 오른쪽 끝 기준(오른쪽 정렬)이에요.</div>
       </div>
@@ -376,6 +376,17 @@
         <svg class="acc-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="acc-body">
+      <div class="field" id="tocImportBox" style="margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid var(--line);">
+        <label for="tocImportText">doc에서 복사해서 붙여넣기</label>
+        <textarea id="tocImportText" placeholder="doc에서 목차를 복사해 여기에 붙여넣으세요(Ctrl+V). 빨간·굵은 글씨는 **강조**, 작은·회색 글씨는 !주석!으로 바뀌어요. 내용을 확인한 뒤 적용을 눌러주세요. (한 줄 = 한 항목, 최대 14줄)" style="min-height:90px;"></textarea>
+        <div class="row" style="margin-top:6px;">
+          <button type="button" class="btn-ghost" id="tocImportCancel">지우기</button>
+          <button type="button" class="btn-primary" id="tocImportApply">적용</button>
+        </div>
+        <button type="button" class="btn-ghost" id="tocFileBtn" style="width:100%;margin-top:6px;">메모장(.txt) 파일 불러오기</button>
+        <input type="file" id="tocFileInput" accept=".txt,text/plain" style="display:none;">
+        <div class="hint">적용하면 아래 목차 항목이 붙여넣은 내용으로 바뀌어요.</div>
+      </div>
       <div id="hostToc"></div>
       </div>
     </section>
@@ -418,19 +429,9 @@
           <label>목차 항목 (최대 14개, 순서대로 번호가 붙어요)</label>
           <div id="tocItems"></div>
           <button class="btn-ghost" id="addTocItem" style="width:100%;margin-top:6px;">+ 항목 추가</button>
-          <button class="btn-ghost" id="tocDocBtn" style="width:100%;margin-top:6px;">doc에서 복사해서 붙여넣기</button>
-          <button class="btn-ghost" id="tocFileBtn" style="width:100%;margin-top:6px;">메모장(.txt) 파일 업로드</button>
-          <input type="file" id="tocFileInput" accept=".txt,text/plain" style="display:none;">
-          <div id="tocImportBox" style="display:none;margin-top:8px;">
-            <textarea id="tocImportText" placeholder="doc에서 목차를 복사해 여기에 붙여넣으세요(Ctrl+V). 빨간·굵은 글씨는 **강조**, 작은·회색 글씨는 !주석!으로 바뀌어요. 내용을 확인한 뒤 적용을 눌러주세요. (한 줄 = 한 항목, 최대 14줄)" style="min-height:90px;"></textarea>
-            <div class="row" style="margin-top:6px;">
-              <button class="btn-ghost" id="tocImportCancel">취소</button>
-              <button class="btn-primary" id="tocImportApply">적용</button>
-            </div>
-          </div>
-          <div class="hint">한 줄 = 한 항목, 최대 14줄. 메모장 파일도 같은 규칙이에요.<br><b>doc에서 복사해서 붙여넣기</b>는 Word·구글 문서에서 복사하면 서식을 읽어서 자동으로 변환해요. (번호는 자동으로 붙으니 문서의 앞 번호는 지워져요)<br>항목 안에서 <b>**강조할 텍스트**</b>처럼 별표 두 개로 감싸면 그 부분만 강조 색상으로 표시돼요.<br><b>!작은 글씨!</b>처럼 느낌표로 감싸면 15px, #767676 색상의 작은 주석 글씨로 표시돼요.</div>
+          <div class="hint">한 줄 = 한 항목, 최대 14줄. 메모장 파일도 같은 규칙이에요.<br>목차 칸 맨 위 <b>doc에서 복사해서 붙여넣기</b> 칸에 Word·구글 문서에서 복사해 붙여넣으면 서식을 읽어서 자동으로 변환해요. (번호는 자동으로 붙으니 문서의 앞 번호는 지워져요)<br>항목 안에서 <b>**강조할 텍스트**</b>처럼 별표 두 개로 감싸면 그 부분만 포인트 컬러로 표시돼요.<br><b>!작은 글씨!</b>처럼 느낌표로 감싸면 15px, #767676 색상의 작은 주석 글씨로 표시돼요.</div>
           <div class="row tight" style="margin-top:8px;">
-            <label style="margin:0;flex:0 0 auto;">강조 색상</label>
+            <label style="margin:0;flex:0 0 auto;">포인트 컬러</label>
             <input type="color" id="fTocEmphasisColor" style="flex:0 0 40px;">
             <label class="switch-label" for="fTocEmphasisBold">글자 강조
               <input type="checkbox" role="switch" class="switch" id="fTocEmphasisBold" aria-label="글자 강조 (굵게)">
@@ -578,7 +579,7 @@
       items:['전체 이벤트 내용 보기','전역장병 할인 이벤트','모델 모집','신규 등록 사은품 증정','온라인 강의 30% 할인','친구 추천 이벤트','수강생 후기 이벤트','조기 등록 할인'],
       text:'', x:700, y:405, size:22, font:"'Noto Sans KR', sans-serif", weight:'700',
       color:'#000000', numColor:'#000000', align:'left', lead:2.3, shadow:false, fixed:false,
-      bgColor:'#000000', bgOpacity:0, bgRadius:16, bgPadding:20, emphasisColor:'#CC2030', emphasisBold:false, annotationColor:'#767676' }
+      bgColor:'#000000', bgOpacity:0, bgRadius:16, bgPadding:20, emphasisColor:'#6F4AC7', emphasisBold:false, annotationColor:'#767676' }
   ];
   const TOC_MAX = 14;
   function rebuildTocText(layer){
@@ -940,7 +941,7 @@
     titleRowsBox.appendChild(row);
     titleInputs[layer.id] = { row, tText, tX, tY, tC };
   });
-  // 포인트 컬러: 타이틀 레이어 색을 한 번에 바꿔요 (개별 색상은 각 줄에서 따로 조절 가능)
+  // 포인트 컬러: 타이틀 4줄 색과 목차 포인트 컬러(강조 글자 색)를 한 번에 바꿔요 (개별 색상은 각 칸에서 따로 조절 가능)
   const pointColorInput = document.getElementById('pointColor');
   pointColorInput.value = layers.find(l=>l.title).color;
   pointColorInput.addEventListener('input', ()=>{
@@ -949,8 +950,9 @@
       l.color = c;
       if (titleInputs[l.id]) titleInputs[l.id].tC.value = c;
     });
+    layers.filter(l=>l.type==='toc').forEach(l=>{ l.emphasisColor = c; });
     const sel = layers.find(l=>l.id===selectedId);
-    if (sel && sel.title) renderEditor();
+    if (sel && (sel.title || sel.type==='toc')) renderEditor();
     draw();
   });
   // 목차 위치(X/Y) 입력
@@ -1076,7 +1078,7 @@
       numColorFieldWrap.style.display='flex';
       colorFieldLabel.textContent = '내용 색상';
       fNumColor.value = l.numColor || l.color;
-      fTocEmphasisColor.value = l.emphasisColor || '#CC2030';
+      fTocEmphasisColor.value = l.emphasisColor || '#6F4AC7';
       fTocEmphasisBold.checked = !!l.emphasisBold;
       fTocAnnotationColor.value = l.annotationColor || '#767676';
       fTocBgColor.value = l.bgColor;
@@ -1086,8 +1088,6 @@
       tocBgRadiusVal.textContent = l.bgRadius;
       fTocBgPadding.value = l.bgPadding;
       tocBgPaddingVal.textContent = l.bgPadding;
-      tocImportBox.style.display = 'none';
-      tocImportText.value = '';
       renderTocItems(l);
     } else {
       textEditorField.style.display='block';
@@ -1182,7 +1182,6 @@
   });
 
   // ---- 메모장(.txt) 가져오기 ----
-  const tocImportBox = document.getElementById('tocImportBox');
   const tocImportText = document.getElementById('tocImportText');
   const tocImportCancel = document.getElementById('tocImportCancel');
   const tocImportApply = document.getElementById('tocImportApply');
@@ -1195,7 +1194,6 @@
     const reader = new FileReader();
     reader.onload = (ev)=>{
       tocImportText.value = String(ev.target.result || '');
-      tocImportBox.style.display = 'block';
       tocImportText.focus();
     };
     reader.readAsText(file, 'UTF-8');
@@ -1317,11 +1315,6 @@
     });
     return out.join('\n');
   }
-  const tocDocBtn = document.getElementById('tocDocBtn');
-  tocDocBtn.addEventListener('click', ()=>{
-    tocImportBox.style.display = 'block';
-    tocImportText.focus();
-  });
   tocImportText.addEventListener('paste', (e)=>{
     const html = e.clipboardData && e.clipboardData.getData('text/html');
     if (!html) return; // 서식 없는 글자는 그대로 붙여넣기
@@ -1332,25 +1325,25 @@
   });
 
   tocImportCancel.addEventListener('click', ()=>{
-    tocImportBox.style.display = 'none';
     tocImportText.value = '';
+    tocImportText.focus();
   });
   tocImportApply.addEventListener('click', ()=>{
-    const l = currentLayer();
-    if (!l || l.type!=='toc') return;
+    // 붙여넣기 칸은 목차 칸 맨 위에 늘 있으니, 선택 상태와 상관없이 목차 레이어에 적용해요
+    const l = layers.find(x=>x.type==='toc');
+    if (!l) return;
     const rows = tocImportText.value.split('\n')
       .map(line => line.split('\t').map(c=>c.trim()).filter(Boolean).join(' '))
       .map(s => s.trim())
       .filter(Boolean)
       .slice(0, TOC_MAX);
-    if (rows.length){
-      l.items = rows;
-      rebuildTocText(l);
-      renderTocItems(l);
-      renderLayerList();
-      draw();
-    }
-    tocImportBox.style.display = 'none';
+    if (!rows.length) return;
+    l.items = rows;
+    rebuildTocText(l);
+    selectedId = l.id;
+    renderEditor();
+    renderLayerList();
+    draw();
     tocImportText.value = '';
   });
 

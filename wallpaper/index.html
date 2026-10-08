@@ -360,6 +360,11 @@
         <svg class="acc-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="acc-body">
+      <div class="field row tight" style="margin-bottom:16px;">
+        <label for="pointColor" style="margin:0;flex:0 0 auto;">포인트 컬러</label>
+        <input type="color" id="pointColor" style="flex:0 0 40px;">
+        <span class="hint" style="margin:0;">타이틀 4줄에 한 번에 적용</span>
+      </div>
       <div id="titleRows"></div>
       <div class="hint">글자를 누르면 캔버스에서 바로 드래그해 옮길 수도 있어요. X는 오른쪽 끝 기준(오른쪽 정렬)이에요.</div>
       </div>
@@ -934,6 +939,19 @@
     [tText,tX,tY,tC].forEach(el=> el.addEventListener('focus', ()=>{ selectedId = layer.id; renderEditor(); draw(); }));
     titleRowsBox.appendChild(row);
     titleInputs[layer.id] = { row, tText, tX, tY, tC };
+  });
+  // 포인트 컬러: 타이틀 레이어 색을 한 번에 바꿔요 (개별 색상은 각 줄에서 따로 조절 가능)
+  const pointColorInput = document.getElementById('pointColor');
+  pointColorInput.value = layers.find(l=>l.title).color;
+  pointColorInput.addEventListener('input', ()=>{
+    const c = pointColorInput.value;
+    layers.filter(l=>l.title).forEach(l=>{
+      l.color = c;
+      if (titleInputs[l.id]) titleInputs[l.id].tC.value = c;
+    });
+    const sel = layers.find(l=>l.id===selectedId);
+    if (sel && sel.title) renderEditor();
+    draw();
   });
   // 목차 위치(X/Y) 입력
   const tocPosInputs = (function(){

@@ -128,7 +128,7 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
                 <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
                 <button class="btn" type="submit" data-add-submit>등록</button>
             </form>
-            <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 이 브라우저에 기억돼요.</p>
+            <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 이 브라우저에 기억되고, 같은 이름으로 올린 카드에만 삭제 버튼이 보여요.</p>
             <p class="add_status" data-add-status role="status" aria-live="polite"></p>
         </section>
     </div>
@@ -532,7 +532,13 @@ async function handleListClick(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-notice]').hidden = Boolean(API_URL);
-    document.querySelector('[data-add-author]').value = readStorage(AUTHOR_KEY, '');
+    const authorEl = document.querySelector('[data-add-author]');
+    authorEl.value = readStorage(AUTHOR_KEY, '');
+    // 작성자 이름을 넣으면 바로 기억해서, 그 이름으로 올린 카드에 삭제 버튼을 보여줘요
+    authorEl.addEventListener('input', () => {
+        writeStorage(AUTHOR_KEY, authorEl.value.trim());
+        render();
+    });
 
     document.querySelector('[data-add-form]').addEventListener('submit', handleSubmit);
     const toggleEl = document.querySelector('[data-add-toggle]');

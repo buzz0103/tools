@@ -249,7 +249,7 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
         </div>
         <div class="drop" id="bulkDrop" tabindex="0" role="button" aria-label="이미지 파일 선택">
             <strong>받은 이미지를 여기에 한꺼번에 끌어다 놓으세요</strong>
-            <span>파일명에 <span class="mono">20per</span>, <span class="mono">cnn</span> 같은 이름이 들어 있으면 알맞은 항목에 자동으로 들어가요. 클릭해서 고를 수도 있어요.</span>
+            <span><span class="mono">760_event_detail_cnn.jpg</span>처럼 받은 파일은 <span class="mono">cnn</span> 항목에 자동으로 들어가요. 이름 뒤에 덧붙인 말(<span class="mono">_수정</span> 등)은 버려요. 클릭해서 고를 수도 있어요.</span>
         </div>
         <input type="file" id="bulkInput" accept="image/*" multiple hidden>
         <input type="file" id="oneInput" accept="image/*" hidden>
@@ -302,15 +302,15 @@ const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS);
 // 여러 장 설정: 장마다 { link: 링크를 걸지 } — main은 4장이고 2번째 이미지에 링크
 const DEFAULT_ITEMS = [
     ['main', 'main', '', [{}, { link: true }, {}, {}]],
-    ['early', 'early', ''],
-    ['10per', '10per', ''],
+    ['early', 'early', '조기 등록 혜택'],
+    ['10per', '10per', '대학생 수강료 10% 할인'],
     ['20per', 'uni20per', '대학교 신입생 수강료 20% 할인'],
-    ['callofduty', 'callofduty', ''],
-    ['cj', 'cj', ''],
-    ['cnn', 'cnn', ''],
-    ['jobcard', 'jobcard', ''],
-    ['toefl', 'toefl', ''],
-    ['ybmlive', 'ybmlive', '']
+    ['callofduty', 'callofduty', '전역 장병 할인'],
+    ['cj', 'cj', '중국어, 일본어 신규 등록생 할인'],
+    ['cnn', 'cnn', '수강생 CNN 콘텐츠 무료 제공'],
+    ['jobcard', 'jobcard', '내일배움카드 할인'],
+    ['toefl', 'toefl', '토플 수강생 토플모의고사 제공'],
+    ['ybmlive', 'ybmlive', '불라방 수강생 할인']
 ];
 const STORE_KEY = 'eventPhpWizard.v1';
 
@@ -447,6 +447,16 @@ function getDuplicateKeys() {
 }
 
 // ===== 이미지 처리 =====
+// 받은 파일명 규칙: 사이즈_event_detail_이벤트이름[_덧붙인말].jpg
+// 이벤트이름만 남기고 뒤에 덧붙인 말은 버려요 (숫자만 있으면 여러 장 칸 번호라서 남겨요)
+const SOURCE_NAME_RE = /^[^_]+_event_detail_([^_]+)(?:_(.*))?$/;
+function cleanSourceName(fileName) {
+    const base = fileName.replace(/\.[^.]+$/, '').toLowerCase();
+    const m = SOURCE_NAME_RE.exec(base);
+    if (!m) return base;
+    const rest = m[2] || '';
+    return /^\d{1,2}$/.test(rest) ? m[1] + '_' + rest : m[1];
+}
 function deriveKey(fileName) {
     return fileName.replace(/\.[^.]+$/, '').toLowerCase()
         .replace(/^detail_\d{6}_/, '').replace(/^event_\d{4}_/, '')
@@ -459,9 +469,28 @@ function setSlotFile(slot, file, onLoad) {
     slot.w = 0; slot.h = 0;
     if (file) {
         const img = new Image();
-        img.onload = () => { slot.w = img.naturalWidth; slot.h = img.naturalHeight; if (onLoad) onLoad(); };
+        img.onload = () => {
+            slot.w = img.naturalWidth; slot.h = img.naturalHeight;
+            if (file.type === 'image/jpeg') { if (onLoad) onLoad(); return; }
+            // png 등은 jpg로 바꿔요 (투명한 부분은 흰색)
+            convertToJpg(img, file).then((jpg) => {
+                if (jpg && slot.file === file) slot.file = jpg;
+                if (onLoad) onLoad();
+            });
+        };
         img.src = slot.url;
     }
+}
+const JPG_QUALITY = 0.95;
+function convertToJpg(img, file) {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+    return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob ? new File([blob], name, { type: 'image/jpeg' }) : null), 'image/jpeg', JPG_QUALITY));
 }
 function setItemFile(it, idx, file) {
     setSlotFile(it.images[idx], file, () => updateItemRow(it));
@@ -506,20 +535,22 @@ function handleBulkFiles(fileList) {
     const taken = new Set();
     const filledByItem = new Map();
     // 긴 파일명부터 처리해야 짧은 이름에 먼저 빼앗기지 않아요
-    files.sort((a, b) => b.name.length - a.name.length || a.name.localeCompare(b.name));
+    const srcNames = new Map(files.map((f) => [f, cleanSourceName(f.name)]));
+    files.sort((a, b) => srcNames.get(b).length - srcNames.get(a).length || srcNames.get(a).localeCompare(srcNames.get(b)));
     files.forEach((file) => {
-        const match = findMatch(file.name, taken);
+        const srcName = srcNames.get(file);
+        const match = findMatch(srcName, taken);
         let it; let idx = 0;
         if (match) {
             it = match.it;
             if (it.multi) {
                 if (!filledByItem.has(it.id)) filledByItem.set(it.id, new Set());
                 const filled = filledByItem.get(it.id);
-                idx = pickSlot(it, file.name, match.key, filled);
+                idx = pickSlot(it, srcName, match.key, filled);
                 filled.add(idx);
             }
         } else {
-            const key = deriveKey(file.name);
+            const key = deriveKey(srcName);
             // 이미지 이름은 비워 두면 PHP 이름을 따라가요 (PHP 이름만 고치면 둘 다 바뀜)
             it = createItem(key, '', '');
             it.isNew = true;

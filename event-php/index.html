@@ -449,13 +449,22 @@ function getDuplicateKeys() {
 // ===== 이미지 처리 =====
 // 받은 파일명 규칙: 사이즈_event_detail_이벤트이름[_덧붙인말].jpg
 // 이벤트이름만 남기고 뒤에 덧붙인 말은 버려요 (숫자만 있으면 여러 장 칸 번호라서 남겨요)
-const SOURCE_NAME_RE = /^[^_]+_event_detail_([^_]+)(?:_(.*))?$/;
-function cleanSourceName(fileName) {
-    const base = fileName.replace(/\.[^.]+$/, '').toLowerCase();
+// ruled: 규칙을 지킨 이름인지 / name: 대소문자 그대로 / text: 짝 찾기용 소문자 (칸 번호 포함)
+const SOURCE_NAME_RE = /^[^_]+_event_detail_([^_]+)(?:_(.*))?$/i;
+function parseSourceName(fileName) {
+    const base = fileName.replace(/\.[^.]+$/, '');
     const m = SOURCE_NAME_RE.exec(base);
-    if (!m) return base;
+    if (!m) return { ruled: false, name: base, text: base.toLowerCase() };
     const rest = m[2] || '';
-    return /^\d{1,2}$/.test(rest) ? m[1] + '_' + rest : m[1];
+    const text = m[1].toLowerCase() + (/^\d{1,2}$/.test(rest) ? '_' + rest : '');
+    return { ruled: true, name: m[1], text };
+}
+// 규칙을 지킨 이름은 항목 이름과 똑같을 때만 짝지어요 (earlybird가 early로 들어가지 않게)
+function findExactMatch(name, taken) {
+    const lower = name.toLowerCase();
+    const byKey = (k) => state.items.find((it) => (it.multi || !taken.has(it.id)) && it[k] && it[k].toLowerCase() === lower);
+    const it = byKey('imgKey') || byKey('phpKey');
+    return it ? { it, key: lower } : null;
 }
 function deriveKey(fileName) {
     return fileName.replace(/\.[^.]+$/, '').toLowerCase()
@@ -535,11 +544,12 @@ function handleBulkFiles(fileList) {
     const taken = new Set();
     const filledByItem = new Map();
     // 긴 파일명부터 처리해야 짧은 이름에 먼저 빼앗기지 않아요
-    const srcNames = new Map(files.map((f) => [f, cleanSourceName(f.name)]));
-    files.sort((a, b) => srcNames.get(b).length - srcNames.get(a).length || srcNames.get(a).localeCompare(srcNames.get(b)));
+    const srcNames = new Map(files.map((f) => [f, parseSourceName(f.name)]));
+    files.sort((a, b) => srcNames.get(b).text.length - srcNames.get(a).text.length || srcNames.get(a).text.localeCompare(srcNames.get(b).text));
     files.forEach((file) => {
-        const srcName = srcNames.get(file);
-        const match = findMatch(srcName, taken);
+        const src = srcNames.get(file);
+        const srcName = src.text;
+        const match = src.ruled ? findExactMatch(src.name, taken) : findMatch(srcName, taken);
         let it; let idx = 0;
         if (match) {
             it = match.it;
@@ -550,10 +560,11 @@ function handleBulkFiles(fileList) {
                 filled.add(idx);
             }
         } else {
-            const key = deriveKey(srcName);
+            // 규칙을 지킨 이름은 대소문자 그대로 믿고 쓰고, 아니면 이름을 확인하게 해요
+            const key = src.ruled ? src.name.replace(/[^A-Za-z0-9-]/g, '') : deriveKey(srcName);
             // 이미지 이름은 비워 두면 PHP 이름을 따라가요 (PHP 이름만 고치면 둘 다 바뀜)
             it = createItem(key, '', '');
-            it.isNew = true;
+            it.isNew = !src.ruled || !key;
             state.items.push(it);
         }
         it.on = true;

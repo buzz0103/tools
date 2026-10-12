@@ -31,7 +31,28 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .notice {margin: 0; padding: 12px 16px; border-radius: 5px; font-size: 13px; line-height: 20px; color: #555555; background: #FFF6DA;}
 .notice[hidden] {display: none;}
 
-.btn.hdr_add {margin-left: auto; height: 36px; padding: 0 14px;}
+.hdr_user {display: flex; align-items: center; gap: 8px; min-width: 0; margin-left: auto; padding-right: 12px; font-size: 12px; line-height: 16px; color: #777777;}
+.hdr_user[hidden] {display: none;}
+.hdr_email {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.hdr_logout {flex: 0 0 auto; padding: 4px 6px; border: 0; border-radius: 5px; font-family: inherit; font-size: 12px; color: #777777; background: transparent; cursor: pointer; transition: opacity .15s ease;}
+.hdr_logout:hover {opacity: .7;}
+.btn.hdr_add {flex: 0 0 auto; height: 36px; padding: 0 14px;}
+.btn.hdr_add[hidden] {display: none;}
+
+/* ---- 회사 메일 인증 ---- */
+.login {display: grid; gap: 16px; width: 100%; max-width: 420px; margin: 48px auto 0; padding: 32px 24px; border-radius: 12px; background: #FFFFFF;}
+.login[hidden] {display: none;}
+.login_title {margin: 0; font-size: 20px; line-height: 28px; font-weight: 700;}
+.login_desc {margin: 0; font-size: 14px; line-height: 21px; color: #777777;}
+.login_form {display: grid; gap: 8px;}
+.login_form[hidden] {display: none;}
+.login_label {font-size: 12px; line-height: 16px; font-weight: 500; color: #777777;}
+.login_row {display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;}
+.login_code {font-size: 18px; letter-spacing: .3em; font-variant-numeric: tabular-nums;}
+.login_again {justify-self: start; padding: 4px 0; border: 0; font-family: inherit; font-size: 12px; color: #777777; text-decoration: underline; background: transparent; cursor: pointer; transition: opacity .15s ease;}
+.login_again:hover {opacity: .7;}
+.app {display: grid; gap: 16px; min-width: 0;}
+.app[hidden] {display: none;}
 .btn.hdr_add-open {padding: 0 8px; border-color: transparent; color: #000000; background: transparent;}
 .btn.hdr_add-open::before {content: ""; width: 16px; height: 16px; background: no-repeat center / 16px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E");}
 
@@ -96,6 +117,9 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 
 @media (max-width: 767px) {
     .hdr {padding: 0 16px;}
+    .hdr_email {display: none;}
+    .hdr_user {padding-right: 4px;}
+    .login {margin-top: 24px; padding: 24px 16px;}
     .add {padding: 16px;}
     .add_row {grid-template-columns: 1fr 1fr;}
     .add_row .input-url {grid-column: 1 / -1;}
@@ -112,10 +136,36 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 
 <header class="hdr">
     <h1 class="hdr_title"><a class="hdr_home" href="../">도구 모음</a>같이 성장 북마크</h1>
-    <button class="btn hdr_add" type="button" aria-expanded="false" aria-controls="addPanel" data-add-toggle>등록하기</button>
+    <p class="hdr_user" data-user hidden>
+        <span class="hdr_email" data-user-email></span>
+        <button class="hdr_logout" type="button" data-logout>로그아웃</button>
+    </p>
+    <button class="btn hdr_add" type="button" aria-expanded="false" aria-controls="addPanel" data-add-toggle hidden>등록하기</button>
 </header>
 
 <main class="main" id="main-content">
+    <section class="login" aria-labelledby="loginTitle" data-login hidden>
+        <h2 class="login_title" id="loginTitle">회사 메일로 들어오기</h2>
+        <p class="login_desc">YBM 임직원만 볼 수 있어요. 회사 메일로 받은 인증번호를 넣으면, 이 브라우저에서는 90일 동안 다시 묻지 않아요.</p>
+        <form class="login_form" data-login-email-form novalidate>
+            <label class="login_label" for="loginEmail">회사 메일</label>
+            <div class="login_row">
+                <input class="input" id="loginEmail" type="email" inputmode="email" placeholder="이름@ybm.co.kr" autocomplete="email" required data-login-email>
+                <button class="btn" type="submit" data-login-send>인증번호 받기</button>
+            </div>
+        </form>
+        <form class="login_form" data-login-code-form novalidate hidden>
+            <label class="login_label" for="loginCode">메일로 받은 인증번호 6자리</label>
+            <div class="login_row">
+                <input class="input login_code" id="loginCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" autocomplete="one-time-code" required data-login-code>
+                <button class="btn" type="submit" data-login-verify>확인</button>
+            </div>
+            <button class="login_again" type="button" data-login-again>메일 주소 바꾸기 · 다시 받기</button>
+        </form>
+        <p class="add_status" data-login-status role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="app" data-app hidden>
     <p class="notice" data-notice hidden>지금은 <strong>체험 모드</strong>예요. 등록한 북마크가 이 브라우저에만 저장돼요. 팀 공유는 <code>bookmark/README.md</code>대로 Google 시트를 연결하면 시작돼요.</p>
 
     <div class="add_wrap" data-add-wrap>
@@ -128,7 +178,7 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
                 <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
                 <button class="btn" type="submit" data-add-submit>등록</button>
             </form>
-            <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 이 브라우저에 기억되고, 같은 이름으로 올린 카드에만 삭제 버튼이 보여요.</p>
+            <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 고쳐 쓸 수 있고, 내가 올린 카드에만 삭제 버튼이 보여요.</p>
             <p class="add_status" data-add-status role="status" aria-live="polite"></p>
         </section>
     </div>
@@ -144,6 +194,7 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
     <p class="toolbar_count" data-count aria-live="polite"></p>
     <ul class="list" data-list></ul>
     <p class="empty" data-empty hidden>아직 북마크가 없어요.</p>
+    </div>
 </main>
 
 <script>
@@ -152,9 +203,13 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzshspgc_nMiL3nJK3byFQg
 
 const LOCAL_KEY = 'bookmark.items';
 const AUTHOR_KEY = 'bookmark.author';
+const SESSION_KEY = 'bookmark.session';
 const THUMB_RETRY = 5;
 
 const state = {items: [], query: ''};
+
+// 서버가 로그인 만료를 알릴 때 쓰는 오류
+class AuthError extends Error {}
 
 // localStorage는 사생활 보호 모드 등에서 막힐 수 있어 감싸요
 function readStorage(key, fallback) {
@@ -236,19 +291,18 @@ async function requestApi(payload) {
         method: 'POST',
         // text/plain이면 사전 요청(CORS preflight) 없이 Apps Script로 보낼 수 있어요
         headers: {'Content-Type': 'text/plain;charset=utf-8'},
-        body: JSON.stringify(payload)
+        // 로그인 토큰은 주소(URL)가 아니라 본문에만 담아요
+        body: JSON.stringify({...payload, token: readStorage(SESSION_KEY, {}).token || ''})
     });
     const data = await res.json();
+    if (data.code === 'AUTH') throw new AuthError(data.message);
     if (!data.ok) throw new Error(data.message || '요청을 처리하지 못했어요.');
     return data;
 }
 
 async function loadItems() {
     if (!API_URL) return readStorage(LOCAL_KEY, []);
-    const res = await fetch(`${API_URL}?action=list`);
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.message || '목록을 불러오지 못했어요.');
-    return data.items;
+    return (await requestApi({action: 'list'})).items;
 }
 
 async function addItem(url, author) {
@@ -270,9 +324,9 @@ async function addItem(url, author) {
     return item;
 }
 
-async function deleteItem(id, author) {
+async function deleteItem(id) {
     if (API_URL) {
-        await requestApi({action: 'delete', id, author});
+        await requestApi({action: 'delete', id});
         return;
     }
     writeStorage(LOCAL_KEY, readStorage(LOCAL_KEY, []).filter((item) => item.id !== id));
@@ -398,8 +452,8 @@ function createCard(item, myName) {
     date.dateTime = item.createdAt;
     date.textContent = formatDate(item.createdAt);
     foot.append(author, date);
-    // 같은 작성자 이름일 때만 삭제 버튼을 보여줘요
-    if (myName && item.author === myName) {
+    // 내가 올린 글(서버가 회사 메일로 확인)에만 삭제 버튼을 보여줘요. 체험 모드는 작성자 이름으로 비교해요
+    if (API_URL ? item.mine : (myName && item.author === myName)) {
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'card_del';
@@ -473,9 +527,106 @@ async function refresh() {
     try {
         state.items = await loadItems();
     } catch (err) {
+        if (err instanceof AuthError) {
+            showLogin(err.message);
+            return;
+        }
         setStatus(err.message || '목록을 불러오지 못했어요.', true);
     }
     render();
+}
+
+// ---- 회사 메일 인증 ----
+function setLoginStatus(message, isError) {
+    const el = document.querySelector('[data-login-status]');
+    el.textContent = message;
+    el.classList.toggle('add_status-error', Boolean(isError));
+}
+
+function showLogin(message) {
+    writeStorage(SESSION_KEY, {});
+    state.items = [];
+    document.querySelector('[data-app]').hidden = true;
+    document.querySelector('[data-add-toggle]').hidden = true;
+    document.querySelector('[data-user]').hidden = true;
+    document.querySelector('[data-login]').hidden = false;
+    document.querySelector('[data-login-email-form]').hidden = false;
+    document.querySelector('[data-login-code-form]').hidden = true;
+    setLoginStatus(message || '', Boolean(message));
+    document.querySelector('[data-login-email]').focus();
+}
+
+function showApp() {
+    const session = readStorage(SESSION_KEY, {});
+    document.querySelector('[data-login]').hidden = true;
+    document.querySelector('[data-app]').hidden = false;
+    document.querySelector('[data-add-toggle]').hidden = false;
+    document.querySelector('[data-user]').hidden = !session.email;
+    document.querySelector('[data-user-email]').textContent = session.email || '';
+    // 작성자 칸이 비어 있으면 메일 아이디로 채워요 (고쳐 쓸 수 있어요)
+    const authorEl = document.querySelector('[data-add-author]');
+    if (!authorEl.value && session.email) authorEl.value = session.email.split('@')[0];
+    refresh();
+}
+
+async function handleSendCode(event) {
+    event.preventDefault();
+    const emailEl = document.querySelector('[data-login-email]');
+    const sendEl = document.querySelector('[data-login-send]');
+    const email = emailEl.value.trim().toLowerCase();
+    if (!/^[^\s@]+@ybm\.co\.kr$/.test(email)) {
+        setLoginStatus('회사 메일(@ybm.co.kr)을 입력해 주세요.', true);
+        emailEl.focus();
+        return;
+    }
+    sendEl.disabled = true;
+    setLoginStatus('인증번호를 보내는 중이에요…');
+    try {
+        await requestApi({action: 'requestCode', email});
+        document.querySelector('[data-login-code-form]').hidden = false;
+        document.querySelector('[data-login-email-form]').hidden = true;
+        setLoginStatus(`${email}로 인증번호를 보냈어요. 메일이 안 보이면 스팸함도 확인해 주세요.`);
+        document.querySelector('[data-login-code]').focus();
+    } catch (err) {
+        setLoginStatus(err.message || '인증번호를 보내지 못했어요.', true);
+    } finally {
+        sendEl.disabled = false;
+    }
+}
+
+async function handleVerify(event) {
+    event.preventDefault();
+    const codeEl = document.querySelector('[data-login-code]');
+    const verifyEl = document.querySelector('[data-login-verify]');
+    const code = codeEl.value.replace(/\D/g, '');
+    if (code.length !== 6) {
+        setLoginStatus('인증번호 6자리를 입력해 주세요.', true);
+        codeEl.focus();
+        return;
+    }
+    verifyEl.disabled = true;
+    try {
+        const email = document.querySelector('[data-login-email]').value.trim().toLowerCase();
+        const data = await requestApi({action: 'verify', email, code});
+        writeStorage(SESSION_KEY, {token: data.token, email: data.email});
+        codeEl.value = '';
+        setLoginStatus('');
+        showApp();
+    } catch (err) {
+        setLoginStatus(err.message || '인증하지 못했어요.', true);
+        codeEl.select();
+    } finally {
+        verifyEl.disabled = false;
+    }
+}
+
+async function handleLogout() {
+    try {
+        await requestApi({action: 'logout'});
+    } catch (err) {
+        // 서버에서 못 지워도 이 브라우저에서는 로그아웃해요
+    }
+    showLogin();
 }
 
 // ---- 이벤트 ----
@@ -509,7 +660,8 @@ async function handleSubmit(event) {
         urlEl.value = '';
         urlEl.focus();
     } catch (err) {
-        setStatus(err.message || '등록하지 못했어요.', true);
+        if (err instanceof AuthError) showLogin(err.message);
+        else setStatus(err.message || '등록하지 못했어요.', true);
     } finally {
         submitEl.disabled = false;
     }
@@ -521,12 +673,13 @@ async function handleListClick(event) {
     if (!window.confirm('이 북마크를 삭제할까요?')) return;
     delBtn.disabled = true;
     try {
-        await deleteItem(delBtn.dataset.deleteId, readStorage(AUTHOR_KEY, ''));
+        await deleteItem(delBtn.dataset.deleteId);
         await refresh();
         setStatus('삭제했어요.');
     } catch (err) {
         delBtn.disabled = false;
-        setStatus(err.message || '삭제하지 못했어요.', true);
+        if (err instanceof AuthError) showLogin(err.message);
+        else setStatus(err.message || '삭제하지 못했어요.', true);
     }
 }
 
@@ -583,7 +736,13 @@ document.addEventListener('DOMContentLoaded', () => {
         searchEl.select();
     });
 
-    refresh();
+    // 회사 메일 인증: 체험 모드(API_URL 없음)는 인증 없이 바로 열어요
+    document.querySelector('[data-login-email-form]').addEventListener('submit', handleSendCode);
+    document.querySelector('[data-login-code-form]').addEventListener('submit', handleVerify);
+    document.querySelector('[data-login-again]').addEventListener('click', () => showLogin());
+    document.querySelector('[data-logout]').addEventListener('click', handleLogout);
+    if (!API_URL || readStorage(SESSION_KEY, {}).token) showApp();
+    else showLogin();
 });
 </script>
 </body>

@@ -33,7 +33,8 @@ function calcBannerLayout(n, width, height, maxContentW = 1136, photoWidthPct = 
 
 // exportRef: PNG 저장용 배너 요소 (저장은 App 헤더 버튼에서 처리)
 export default function BannerPreview({ settings, onPhotoUpload, onReorder, onUpdateInstructor, exportRef }) {
-  const [zoom, setZoom]               = useState(null)
+  const [zoom, setZoom]               = useState(null) // null = 맞춤(화면에 맞게 자동)
+  const [canvasSize, setCanvasSize]   = useState(null) // { w, h } | null
   const [selectedPhoto, setSelected]  = useState(null) // index | null
   const [isDragging, setDragging]     = useState(false)
   const canvasRef  = useRef(null)
@@ -46,18 +47,32 @@ export default function BannerPreview({ settings, onPhotoUpload, onReorder, onUp
     bannerLayout = 'horizontal', photoWidthPct = 100, photoGap = 0,
   } = settings
 
-  const calcFitZoom = useCallback(() => {
+  /* ── 캔버스 크기 감시 (창 크기가 바뀌면 맞춤 배율도 다시 계산) ── */
+  useEffect(() => {
     const el = canvasRef.current
-    if (!el) return 0.5
-    const pad = 80
-    const zw = (el.clientWidth - pad) / bannerWidth
-    const zh = (el.clientHeight - pad) / bannerHeight
-    return Math.min(zw, zh, 1)
-  }, [bannerWidth, bannerHeight])
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      setCanvasSize({ w: el.clientWidth, h: el.clientHeight })
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
-  useEffect(() => { setZoom(calcFitZoom()) }, [calcFitZoom])
+  // 배너가 캔버스 안에 다 들어오는 배율 (최대 100%)
+  const pad     = 80
+  const fitZoom = canvasSize
+    ? Math.min((canvasSize.w - pad) / bannerWidth, (canvasSize.h - pad) / bannerHeight, 1)
+    : 0.5
 
-  const ez      = zoom ?? 0.5          // effectiveZoom
+  // 배너 크기가 바뀌면 맞춤으로 되돌림 (렌더 중 이전 값과 비교하는 방식)
+  const sizeKey = `${bannerWidth}x${bannerHeight}`
+  const [zoomSizeKey, setZoomSizeKey] = useState(sizeKey)
+  if (zoomSizeKey !== sizeKey) {
+    setZoomSizeKey(sizeKey)
+    setZoom(null)
+  }
+
+  const ez      = zoom ?? fitZoom      // effectiveZoom
   const scaledW = Math.round(bannerWidth  * ez)
   const scaledH = Math.round(bannerHeight * ez)
 
@@ -136,7 +151,7 @@ export default function BannerPreview({ settings, onPhotoUpload, onReorder, onUp
             <ZoomIn size={16} strokeWidth={1.8} />
           </button>
           <span className="w-px h-3.5 mx-1 bg-edge" />
-          <button type="button" onClick={() => setZoom(calcFitZoom())} className={zoomBtnCls}>
+          <button type="button" onClick={() => setZoom(null)} className={zoomBtnCls}>
             <Maximize size={16} strokeWidth={1.8} /> 맞춤
           </button>
         </div>
@@ -491,7 +506,6 @@ function Banner({
   const infoBarLeft    = Math.max(0, photoGroupLeft - infoBarPad)
   const infoBarW       = (n - 1) * step + photoW + infoBarPad + (photoGroupLeft - infoBarLeft) + infoBarPad
 
-  const infoSlotW   = photoW   // 각 슬롯 = 사진 너비 (중간 슬롯은 step만큼 차지)
   const infoLg      = Math.round(Math.min(20, Math.max(10, photoW * 0.115)))
   const infoSm      = Math.round(Math.min(14, Math.max( 8, photoW * 0.082)))
 

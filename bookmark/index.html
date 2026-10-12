@@ -31,13 +31,11 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .notice {margin: 0; padding: 12px 16px; border-radius: 5px; font-size: 13px; line-height: 20px; color: #555555; background: #FFF6DA;}
 .notice[hidden] {display: none;}
 
-.hdr_user {display: flex; align-items: center; gap: 8px; min-width: 0; margin-left: auto; padding-right: 12px; font-size: 12px; line-height: 16px; color: #777777;}
+.hdr_user {display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0 0 0 auto; font-size: 12px; line-height: 16px; color: #777777;}
 .hdr_user[hidden] {display: none;}
 .hdr_email {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 .hdr_logout {flex: 0 0 auto; padding: 4px 6px; border: 0; border-radius: 5px; font-family: inherit; font-size: 12px; color: #777777; background: transparent; cursor: pointer; transition: opacity .15s ease;}
 .hdr_logout:hover {opacity: .7;}
-.btn.hdr_add {flex: 0 0 auto; height: 36px; padding: 0 14px;}
-.btn.hdr_add[hidden] {display: none;}
 
 /* ---- 회사 메일 인증 ---- */
 .login {display: grid; gap: 16px; width: 100%; max-width: 420px; margin: 48px auto 0; padding: 32px 24px; border-radius: 12px; background: #FFFFFF;}
@@ -53,17 +51,9 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .login_again:hover {opacity: .7;}
 .app {display: grid; gap: 16px; min-width: 0;}
 .app[hidden] {display: none;}
-.btn.hdr_add-open {padding: 0 8px; border-color: transparent; color: #000000; background: transparent;}
-.btn.hdr_add-open::before {content: ""; width: 16px; height: 16px; background: no-repeat center / 16px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E");}
 
-/* ---- 등록 폼 (헤더의 등록하기 버튼으로 펼쳐요) ---- */
-.add_wrap {display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease;}
-.add_wrap-open {grid-template-rows: 1fr;}
-.add_wrap > .add {min-height: 0; overflow: hidden; visibility: hidden; transition: visibility .2s;}
-.add_wrap-open > .add {visibility: visible;}
-.add_wrap:not(.add_wrap-open) + .toolbar {margin-top: -16px;}
-.add {display: grid; gap: 12px; padding: 0 24px; border-radius: 12px; background: #FFFFFF;}
-.add::before, .add::after {content: ""; display: block; height: 12px;}
+/* ---- 등록 폼 ---- */
+.add {display: grid; gap: 12px; padding: 24px; border-radius: 12px; background: #FFFFFF;}
 .add_title {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
 .add_row {display: grid; grid-template-columns: minmax(0, 1fr) 180px auto; gap: 8px;}
 .add_hint {margin: 0; font-size: 12px; line-height: 18px; color: #949494;}
@@ -81,13 +71,11 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .btn:disabled {border-color: #E4E4E4; color: #949494; background: #E4E4E4; cursor: default;}
 
 /* ---- 검색 ---- */
-.toolbar {position: sticky; top: 56px; z-index: 4; display: grid; gap: 8px; margin: 0 -16px; padding: 12px 16px; background: #F5F5F5;}
-.toolbar_search {position: relative;}
-.toolbar_search::before {content: ""; position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; margin-top: -9px; background: no-repeat center / 18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23949494' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E"); pointer-events: none;}
-.toolbar_search .input {height: 52px; padding: 0 56px 0 44px; border-color: #DFDFDF; border-radius: 12px; font-size: 16px; background: #FFFFFF;}
-.toolbar_search .input:focus {border-color: #1775F0;}
-.toolbar_key {position: absolute; right: 14px; top: 50%; transform: translateY(-50%); padding: 2px 8px; border: 1px solid #DFDFDF; border-radius: 5px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 16px; color: #949494; pointer-events: none;}
-.toolbar_count {margin: 8px 0 -4px; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777; font-variant-numeric: tabular-nums;}
+.toolbar {display: grid; gap: 12px;}
+.toolbar_top {display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;}
+.toolbar_count {margin: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777; font-variant-numeric: tabular-nums;}
+.toolbar_search {flex: 0 1 320px; min-width: 0;}
+.toolbar_search .input {background: #FFFFFF;}
 .card_title mark {border-radius: 2px; color: inherit; background: #FFE58A;}
 
 /* ---- 북마크 카드 ---- */
@@ -118,7 +106,6 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 @media (max-width: 767px) {
     .hdr {padding: 0 16px;}
     .hdr_email {display: none;}
-    .hdr_user {padding-right: 4px;}
     .login {margin-top: 24px; padding: 24px 16px;}
     .add {padding: 16px;}
     .add_row {grid-template-columns: 1fr 1fr;}
@@ -140,7 +127,6 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
         <span class="hdr_email" data-user-email></span>
         <button class="hdr_logout" type="button" data-logout>로그아웃</button>
     </p>
-    <button class="btn hdr_add" type="button" aria-expanded="false" aria-controls="addPanel" data-add-toggle hidden>등록하기</button>
 </header>
 
 <main class="main" id="main-content">
@@ -168,30 +154,29 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
     <div class="app" data-app hidden>
     <p class="notice" data-notice hidden>지금은 <strong>체험 모드</strong>예요. 등록한 북마크가 이 브라우저에만 저장돼요. 팀 공유는 <code>bookmark/README.md</code>대로 Google 시트를 연결하면 시작돼요.</p>
 
-    <div class="add_wrap" data-add-wrap>
-        <section class="add" id="addPanel" aria-labelledby="addTitle">
-            <h2 class="add_title" id="addTitle">링크 등록</h2>
-            <form class="add_row" data-add-form novalidate>
-                <label class="sr-only" for="bmUrl">URL</label>
-                <input class="input input-url" id="bmUrl" name="url" type="url" inputmode="url" placeholder="https://공유할-링크" autocomplete="off" required data-add-url>
-                <label class="sr-only" for="bmAuthor">작성자</label>
-                <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
-                <button class="btn" type="submit" data-add-submit>등록</button>
-            </form>
-            <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 고쳐 쓸 수 있고, 내가 올린 카드에만 삭제 버튼이 보여요.</p>
-            <p class="add_status" data-add-status role="status" aria-live="polite"></p>
-        </section>
-    </div>
+    <section class="add" aria-labelledby="addTitle">
+        <h2 class="add_title" id="addTitle">링크 등록</h2>
+        <form class="add_row" data-add-form novalidate>
+            <label class="sr-only" for="bmUrl">URL</label>
+            <input class="input input-url" id="bmUrl" name="url" type="url" inputmode="url" placeholder="https://공유할-링크" autocomplete="off" required data-add-url>
+            <label class="sr-only" for="bmAuthor">작성자</label>
+            <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
+            <button class="btn" type="submit" data-add-submit>등록</button>
+        </form>
+        <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 고쳐 쓸 수 있고, 내가 올린 카드에만 삭제 버튼이 보여요.</p>
+        <p class="add_status" data-add-status role="status" aria-live="polite"></p>
+    </section>
 
     <section class="toolbar" aria-label="북마크 찾기">
-        <div class="toolbar_search">
-            <label class="sr-only" for="bmSearch">북마크 검색</label>
-            <input class="input" id="bmSearch" type="search" placeholder="제목·사이트·작성자로 검색 (여러 단어, 초성도 돼요)" autocomplete="off" data-search>
-            <kbd class="toolbar_key" aria-hidden="true" data-search-key>/</kbd>
+        <div class="toolbar_top">
+            <p class="toolbar_count" data-count aria-live="polite"></p>
+            <div class="toolbar_search">
+                <label class="sr-only" for="bmSearch">북마크 검색</label>
+                <input class="input" id="bmSearch" type="search" placeholder="제목·사이트·작성자로 검색" autocomplete="off" data-search>
+            </div>
         </div>
     </section>
 
-    <p class="toolbar_count" data-count aria-live="polite"></p>
     <ul class="list" data-list></ul>
     <p class="empty" data-empty hidden>아직 북마크가 없어요.</p>
     </div>
@@ -547,7 +532,6 @@ function showLogin(message) {
     writeStorage(SESSION_KEY, {});
     state.items = [];
     document.querySelector('[data-app]').hidden = true;
-    document.querySelector('[data-add-toggle]').hidden = true;
     document.querySelector('[data-user]').hidden = true;
     document.querySelector('[data-login]').hidden = false;
     document.querySelector('[data-login-email-form]').hidden = false;
@@ -560,7 +544,6 @@ function showApp() {
     const session = readStorage(SESSION_KEY, {});
     document.querySelector('[data-login]').hidden = true;
     document.querySelector('[data-app]').hidden = false;
-    document.querySelector('[data-add-toggle]').hidden = false;
     document.querySelector('[data-user]').hidden = !session.email;
     document.querySelector('[data-user-email]').textContent = session.email || '';
     // 작성자 칸이 비어 있으면 메일 아이디로 채워요 (고쳐 쓸 수 있어요)
@@ -694,24 +677,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelector('[data-add-form]').addEventListener('submit', handleSubmit);
-    const toggleEl = document.querySelector('[data-add-toggle]');
-    const wrapEl = document.querySelector('[data-add-wrap]');
-    const setAddOpen = (open) => {
-        wrapEl.classList.toggle('add_wrap-open', open);
-        toggleEl.classList.toggle('hdr_add-open', open);
-        toggleEl.setAttribute('aria-expanded', String(open));
-        toggleEl.textContent = open ? '닫기' : '등록하기';
-        if (open) {
-            window.scrollTo({top: 0, behavior: 'smooth'});
-            document.querySelector('[data-add-url]').focus({preventScroll: true});
-        }
-    };
-    toggleEl.addEventListener('click', () => setAddOpen(!wrapEl.classList.contains('add_wrap-open')));
-    wrapEl.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        setAddOpen(false);
-        toggleEl.focus();
-    });
     document.querySelector('[data-list]').addEventListener('click', handleListClick);
     const searchEl = document.querySelector('[data-search]');
     searchEl.addEventListener('input', () => {
@@ -719,9 +684,6 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     });
     // / 키로 바로 검색, Esc로 지우기
-    const keyEl = document.querySelector('[data-search-key]');
-    searchEl.addEventListener('focus', () => { keyEl.textContent = 'Esc'; });
-    searchEl.addEventListener('blur', () => { keyEl.textContent = '/'; });
     searchEl.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
         searchEl.value = '';

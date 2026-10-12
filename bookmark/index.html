@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>북마크 공유</title>
+<title>아, 유익해</title>
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<meta name="description" content="팀에서 함께 보는 링크 모음. URL과 작성자만 넣으면 캡쳐 섬네일과 키워드가 자동으로 붙어요.">
+<meta name="description" content="팀에서 함께 보는 링크 모음. URL과 작성자만 넣으면 제목과 섬네일이 자동으로 붙어요.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 /* 다른 마법사와 같은 LINE 디자인 기준: 포인트 #1775F0 + Black + Gray, 상태는 opacity(hover 70% / pressed 50%), 모서리 5px(카드 12px) */
@@ -31,8 +31,18 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .notice {margin: 0; padding: 12px 16px; border-radius: 5px; font-size: 13px; line-height: 20px; color: #555555; background: #FFF6DA;}
 .notice[hidden] {display: none;}
 
-/* ---- 등록 폼 ---- */
-.add {display: grid; gap: 12px; padding: 24px; border-radius: 12px; background: #FFFFFF;}
+.btn.hdr_add {margin-left: auto; height: 36px; padding: 0 14px;}
+.btn.hdr_add-open {padding: 0 8px; border-color: transparent; color: #000000; background: transparent;}
+.btn.hdr_add-open::before {content: ""; width: 16px; height: 16px; background: no-repeat center / 16px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E");}
+
+/* ---- 등록 폼 (헤더의 등록하기 버튼으로 펼쳐요) ---- */
+.add_wrap {display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease;}
+.add_wrap-open {grid-template-rows: 1fr;}
+.add_wrap > .add {min-height: 0; overflow: hidden; visibility: hidden; transition: visibility .2s;}
+.add_wrap-open > .add {visibility: visible;}
+.add_wrap:not(.add_wrap-open) + .toolbar {margin-top: -16px;}
+.add {display: grid; gap: 12px; padding: 0 24px; border-radius: 12px; background: #FFFFFF;}
+.add::before, .add::after {content: ""; display: block; height: 12px;}
 .add_title {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
 .add_row {display: grid; grid-template-columns: minmax(0, 1fr) 180px auto; gap: 8px;}
 .add_hint {margin: 0; font-size: 12px; line-height: 18px; color: #949494;}
@@ -49,17 +59,15 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .btn:active:not(:disabled) {opacity: .5;}
 .btn:disabled {border-color: #E4E4E4; color: #949494; background: #E4E4E4; cursor: default;}
 
-/* ---- 검색·키워드 필터 ---- */
-.toolbar {display: grid; gap: 12px;}
-.toolbar_top {display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;}
-.toolbar_count {margin: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777; font-variant-numeric: tabular-nums;}
-.toolbar_search {flex: 0 1 320px; min-width: 0;}
-.toolbar_search .input {background: #FFFFFF;}
-.chips {display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none;}
-.chip {display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 1px solid #DFDFDF; border-radius: 14px; font-family: inherit; font-size: 12px; font-weight: 500; color: #555555; background: #FFFFFF; cursor: pointer; transition: opacity .15s ease;}
-.chip:hover {opacity: .7;}
-.chip:active {opacity: .5;}
-.chip[aria-pressed="true"] {border-color: #1775F0; color: #FFFFFF; background: #1775F0;}
+/* ---- 검색 ---- */
+.toolbar {position: sticky; top: 56px; z-index: 4; display: grid; gap: 8px; margin: 0 -16px; padding: 12px 16px; background: #F5F5F5;}
+.toolbar_search {position: relative;}
+.toolbar_search::before {content: ""; position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; margin-top: -9px; background: no-repeat center / 18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23949494' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E"); pointer-events: none;}
+.toolbar_search .input {height: 52px; padding: 0 56px 0 44px; border-color: #DFDFDF; border-radius: 12px; font-size: 16px; background: #FFFFFF;}
+.toolbar_search .input:focus {border-color: #1775F0;}
+.toolbar_key {position: absolute; right: 14px; top: 50%; transform: translateY(-50%); padding: 2px 8px; border: 1px solid #DFDFDF; border-radius: 5px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 16px; color: #949494; pointer-events: none;}
+.toolbar_count {margin: 8px 0 -4px; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777; font-variant-numeric: tabular-nums;}
+.card_title mark {border-radius: 2px; color: inherit; background: #FFE58A;}
 
 /* ---- 북마크 카드 ---- */
 .list {display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none;}
@@ -78,9 +86,6 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .card_host span {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 .card_host::after {content: "↗"; margin-left: auto; color: #1775F0;}
 .card_meta {display: grid; gap: 10px; padding: 12px 16px 16px;}
-.card_tags {display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none;}
-.card_tag {display: inline-flex; height: 24px; align-items: center; padding: 0 8px; border: 0; border-radius: 5px; font-family: inherit; font-size: 12px; font-weight: 500; color: #1775F0; background: #EEF5FE; cursor: pointer; transition: opacity .15s ease;}
-.card_tag:hover {opacity: .7;}
 .card_foot {display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; line-height: 16px; color: #949494;}
 .card_author {font-weight: 600; color: #555555;}
 .card_del {margin-left: auto; padding: 4px 6px; border: 0; border-radius: 5px; font-family: inherit; font-size: 12px; color: #949494; background: transparent; cursor: pointer; transition: opacity .15s ease;}
@@ -106,50 +111,50 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 <a href="#main-content" class="skip-nav">본문 바로가기</a>
 
 <header class="hdr">
-    <h1 class="hdr_title"><a class="hdr_home" href="../">도구 모음</a>북마크 공유</h1>
+    <h1 class="hdr_title"><a class="hdr_home" href="../">도구 모음</a>아, 유익해</h1>
+    <button class="btn hdr_add" type="button" aria-expanded="false" aria-controls="addPanel" data-add-toggle>등록하기</button>
 </header>
 
 <main class="main" id="main-content">
     <p class="notice" data-notice hidden>지금은 <strong>체험 모드</strong>예요. 등록한 북마크가 이 브라우저에만 저장돼요. 팀 공유는 <code>bookmark/README.md</code>대로 Google 시트를 연결하면 시작돼요.</p>
 
-    <section class="add" aria-labelledby="addTitle">
-        <h2 class="add_title" id="addTitle">링크 등록</h2>
-        <form class="add_row" data-add-form novalidate>
-            <label class="sr-only" for="bmUrl">URL</label>
-            <input class="input input-url" id="bmUrl" name="url" type="url" inputmode="url" placeholder="https://공유할-링크" autocomplete="off" required data-add-url>
-            <label class="sr-only" for="bmAuthor">작성자</label>
-            <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
-            <button class="btn" type="submit" data-add-submit>등록</button>
-        </form>
-        <p class="add_hint">URL만 넣으면 제목·키워드는 자동으로 뽑고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 이 브라우저에 기억돼요.</p>
-        <p class="add_status" data-add-status role="status" aria-live="polite"></p>
-    </section>
+    <div class="add_wrap" data-add-wrap>
+        <section class="add" id="addPanel" aria-labelledby="addTitle">
+            <h2 class="add_title" id="addTitle">링크 등록</h2>
+            <form class="add_row" data-add-form novalidate>
+                <label class="sr-only" for="bmUrl">URL</label>
+                <input class="input input-url" id="bmUrl" name="url" type="url" inputmode="url" placeholder="https://공유할-링크" autocomplete="off" required data-add-url>
+                <label class="sr-only" for="bmAuthor">작성자</label>
+                <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
+                <button class="btn" type="submit" data-add-submit>등록</button>
+            </form>
+            <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 이 브라우저에 기억돼요.</p>
+            <p class="add_status" data-add-status role="status" aria-live="polite"></p>
+        </section>
+    </div>
 
     <section class="toolbar" aria-label="북마크 찾기">
-        <div class="toolbar_top">
-            <p class="toolbar_count" data-count aria-live="polite"></p>
-            <div class="toolbar_search">
-                <label class="sr-only" for="bmSearch">북마크 검색</label>
-                <input class="input" id="bmSearch" type="search" placeholder="제목·키워드·작성자로 검색" data-search>
-            </div>
+        <div class="toolbar_search">
+            <label class="sr-only" for="bmSearch">북마크 검색</label>
+            <input class="input" id="bmSearch" type="search" placeholder="제목·사이트·작성자로 검색 (여러 단어, 초성도 돼요)" autocomplete="off" data-search>
+            <kbd class="toolbar_key" aria-hidden="true" data-search-key>/</kbd>
         </div>
-        <ul class="chips" data-chips aria-label="자주 쓰인 키워드"></ul>
     </section>
 
+    <p class="toolbar_count" data-count aria-live="polite"></p>
     <ul class="list" data-list></ul>
     <p class="empty" data-empty hidden>아직 북마크가 없어요.</p>
 </main>
 
 <script>
 // Apps Script 웹 앱 주소 (README 3단계에서 받은 /exec 주소). 비워 두면 체험 모드(이 브라우저에만 저장)
-const API_URL = '';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzshspgc_nMiL3nJK3byFQg3AfdJwZOm3VLfbQm77bq1pSOdNh4TFe-E4jn3WuPadMq/exec';
 
 const LOCAL_KEY = 'bookmark.items';
 const AUTHOR_KEY = 'bookmark.author';
-const CHIP_LIMIT = 15;
 const THUMB_RETRY = 5;
 
-const state = {items: [], query: '', keyword: ''};
+const state = {items: [], query: ''};
 
 // localStorage는 사생활 보호 모드 등에서 막힐 수 있어 감싸요
 function readStorage(key, fallback) {
@@ -198,6 +203,27 @@ function formatDate(iso) {
 function getThumbUrl(url, attempt) {
     const bust = attempt ? `&r=${attempt}` : '';
     return `https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=640&h=400&vpw=1280&vph=800${bust}`;
+}
+
+// 유튜브 영상 ID (watch·youtu.be·shorts·embed·live 주소)
+function getYoutubeId(url) {
+    const match = String(url).match(/^https?:\/\/(?:[\w-]+\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i);
+    return match ? match[1] : '';
+}
+
+// 유튜브 제목은 화면에서 바로 받아와요 (noembed: CORS를 허용하는 oEmbed 중계). 이미 등록한 카드도 진짜 제목으로 보여요
+const youtubeTitles = {};
+async function fillYoutubeTitle(item, titleEl) {
+    try {
+        youtubeTitles[item.url] = youtubeTitles[item.url] || fetch(`https://noembed.com/embed?url=${encodeURIComponent(item.url)}`).then((res) => res.json());
+        const data = await youtubeTitles[item.url];
+        if (data && data.title) {
+            item.title = data.title;
+            highlight(titleEl, data.title, getTerms(state.query));
+        }
+    } catch (err) {
+        // 못 받아오면 시트에 저장된 제목을 그대로 둬요
+    }
 }
 
 function getFaviconUrl(url) {
@@ -274,6 +300,23 @@ function createThumb(item) {
     img.decoding = 'async';
     img.referrerPolicy = 'no-referrer';
     let attempt = 0;
+    thumb.appendChild(img);
+
+    // 유튜브는 캡쳐 대신 영상 섬네일을 써요. 고화질(maxres)이 없는 영상은 mq(320px)로 바꿔요
+    const youtubeId = getYoutubeId(item.url);
+    if (youtubeId) {
+        const useMq = () => { img.src = `https://i.ytimg.com/vi/${youtubeId}/mqdefault.jpg`; };
+        img.addEventListener('load', () => {
+            if (img.naturalWidth <= 120 && !img.src.includes('mqdefault')) return useMq();
+            thumb.classList.remove('card_thumb-loading');
+        });
+        img.addEventListener('error', () => {
+            if (!img.src.includes('mqdefault')) return useMq();
+            showFallback();
+        });
+        img.src = `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`;
+        return thumb;
+    }
 
     // mShots는 처음 요청 때 '생성 중' 이미지를 주므로, 실제 캡쳐(640px)가 올 때까지 몇 번 다시 불러요
     img.addEventListener('load', () => {
@@ -307,7 +350,6 @@ function createThumb(item) {
     }
 
     img.src = getThumbUrl(item.url, 0);
-    thumb.appendChild(img);
     return thumb;
 }
 
@@ -326,7 +368,8 @@ function createCard(item, myName) {
     body.className = 'card_body';
     const title = document.createElement('h3');
     title.className = 'card_title';
-    title.textContent = item.title || getHost(item.url);
+    highlight(title, item.title || getHost(item.url), getTerms(state.query));
+    if (getYoutubeId(item.url)) fillYoutubeTitle(item, title);
     const host = document.createElement('span');
     host.className = 'card_host';
     const favicon = document.createElement('img');
@@ -346,22 +389,6 @@ function createCard(item, myName) {
 
     const meta = document.createElement('div');
     meta.className = 'card_meta';
-    if (item.keywords.length) {
-        const tags = document.createElement('ul');
-        tags.className = 'card_tags';
-        tags.setAttribute('aria-label', '키워드');
-        item.keywords.forEach((keyword) => {
-            const li = document.createElement('li');
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'card_tag';
-            btn.dataset.keyword = keyword;
-            btn.textContent = `#${keyword}`;
-            li.appendChild(btn);
-            tags.appendChild(li);
-        });
-        meta.appendChild(tags);
-    }
     const foot = document.createElement('p');
     foot.className = 'card_foot';
     const author = document.createElement('span');
@@ -387,43 +414,53 @@ function createCard(item, myName) {
     return card;
 }
 
-function renderChips() {
-    const counts = {};
-    state.items.forEach((item) => item.keywords.forEach((k) => { counts[k] = (counts[k] || 0) + 1; }));
-    const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b)).slice(0, CHIP_LIMIT);
-    // 선택한 키워드가 상위 목록 밖이어도 해제할 수 있게 넣어 둬요
-    if (state.keyword && !top.includes(state.keyword)) top.unshift(state.keyword);
+// ---- 검색: 띄어 쓴 단어가 모두 들어간 글만, 한글 초성(ㅂㄹㄷ)으로도 찾아요 ----
+const CHOSEONG = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+function toChoseong(text) {
+    return Array.from(text, (ch) => {
+        const code = ch.charCodeAt(0) - 0xAC00;
+        return code >= 0 && code < 11172 ? CHOSEONG[Math.floor(code / 588)] : ch;
+    }).join('');
+}
 
-    const chipsEl = document.querySelector('[data-chips]');
-    chipsEl.replaceChildren(...top.map((keyword) => {
-        const li = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'chip';
-        btn.dataset.keyword = keyword;
-        btn.setAttribute('aria-pressed', String(keyword === state.keyword));
-        btn.textContent = `#${keyword}`;
-        li.appendChild(btn);
-        return li;
+function getTerms(query) {
+    return query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+function matchesTerms(item, terms) {
+    const text = [item.title, getHost(item.url), item.url, item.description, item.author].join(' ').toLowerCase();
+    const initials = toChoseong(text);
+    return terms.every((term) => text.includes(term) || (/^[ㄱ-ㅎ]+$/.test(term) && initials.includes(term)));
+}
+
+// 제목에서 찾은 단어를 형광펜으로 칠해요 (초성 검색은 칠하지 않아요)
+function highlight(el, text, terms) {
+    const words = terms.filter((term) => !/^[ㄱ-ㅎ]+$/.test(term)).map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (!words.length) {
+        el.textContent = text;
+        return;
+    }
+    const re = new RegExp(`(${words.join('|')})`, 'gi');
+    el.replaceChildren(...text.split(re).filter(Boolean).map((part) => {
+        if (!re.test(part)) return document.createTextNode(part);
+        re.lastIndex = 0;
+        const mark = document.createElement('mark');
+        mark.textContent = part;
+        return mark;
     }));
 }
 
 function render() {
-    const q = state.query.trim().toLowerCase();
+    const terms = getTerms(state.query);
+    const q = terms.length > 0;
     const myName = readStorage(AUTHOR_KEY, '');
-    const matched = state.items.filter((item) => {
-        if (state.keyword && !item.keywords.includes(state.keyword)) return false;
-        if (!q) return true;
-        return [item.title, item.url, item.description, item.author, ...item.keywords].join(' ').toLowerCase().includes(q);
-    });
+    const matched = q ? state.items.filter((item) => matchesTerms(item, terms)) : state.items;
 
     document.querySelector('[data-list]').replaceChildren(...matched.map((item) => createCard(item, myName)));
     const emptyEl = document.querySelector('[data-empty]');
     emptyEl.hidden = matched.length > 0;
     emptyEl.textContent = state.items.length ? '조건에 맞는 북마크가 없어요.' : '아직 북마크가 없어요. 첫 링크를 등록해 보세요.';
-    const filtered = q || state.keyword;
-    document.querySelector('[data-count]').textContent = filtered ? `검색 결과 ${matched.length}개` : `북마크 ${state.items.length}개`;
-    renderChips();
+    document.querySelector('[data-count]').textContent = q ? `검색 결과 ${matched.length}개` : `북마크 ${state.items.length}개`;
 }
 
 function setStatus(message, isError) {
@@ -463,12 +500,12 @@ async function handleSubmit(event) {
 
     writeStorage(AUTHOR_KEY, author);
     submitEl.disabled = true;
-    setStatus(API_URL ? '페이지를 읽고 키워드를 뽑는 중이에요…' : '등록하는 중이에요…');
+    setStatus(API_URL ? '페이지를 읽는 중이에요…' : '등록하는 중이에요…');
     try {
         const item = await addItem(url, author);
         // 다른 사람이 등록한 것까지 함께 보이도록 새로 불러와요
         await refresh();
-        setStatus(`등록했어요: ${item.title}${item.keywords.length ? ` (#${item.keywords.join(' #')})` : ''}`);
+        setStatus(`등록했어요: ${item.title}`);
         urlEl.value = '';
         urlEl.focus();
     } catch (err) {
@@ -479,13 +516,6 @@ async function handleSubmit(event) {
 }
 
 async function handleListClick(event) {
-    const tagBtn = event.target.closest('[data-keyword]');
-    if (tagBtn) {
-        state.keyword = tagBtn.dataset.keyword;
-        render();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        return;
-    }
     const delBtn = event.target.closest('[data-delete-id]');
     if (!delBtn) return;
     if (!window.confirm('이 북마크를 삭제할까요?')) return;
@@ -505,17 +535,46 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-add-author]').value = readStorage(AUTHOR_KEY, '');
 
     document.querySelector('[data-add-form]').addEventListener('submit', handleSubmit);
-    document.querySelector('[data-list]').addEventListener('click', handleListClick);
-    document.querySelector('[data-chips]').addEventListener('click', (event) => {
-        const btn = event.target.closest('[data-keyword]');
-        if (!btn) return;
-        state.keyword = state.keyword === btn.dataset.keyword ? '' : btn.dataset.keyword;
-        render();
+    const toggleEl = document.querySelector('[data-add-toggle]');
+    const wrapEl = document.querySelector('[data-add-wrap]');
+    const setAddOpen = (open) => {
+        wrapEl.classList.toggle('add_wrap-open', open);
+        toggleEl.classList.toggle('hdr_add-open', open);
+        toggleEl.setAttribute('aria-expanded', String(open));
+        toggleEl.textContent = open ? '닫기' : '등록하기';
+        if (open) {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            document.querySelector('[data-add-url]').focus({preventScroll: true});
+        }
+    };
+    toggleEl.addEventListener('click', () => setAddOpen(!wrapEl.classList.contains('add_wrap-open')));
+    wrapEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        setAddOpen(false);
+        toggleEl.focus();
     });
+    document.querySelector('[data-list]').addEventListener('click', handleListClick);
     const searchEl = document.querySelector('[data-search]');
     searchEl.addEventListener('input', () => {
         state.query = searchEl.value;
         render();
+    });
+    // / 키로 바로 검색, Esc로 지우기
+    const keyEl = document.querySelector('[data-search-key]');
+    searchEl.addEventListener('focus', () => { keyEl.textContent = 'Esc'; });
+    searchEl.addEventListener('blur', () => { keyEl.textContent = '/'; });
+    searchEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        searchEl.value = '';
+        state.query = '';
+        render();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.target.closest('input, textarea, select, [contenteditable]')) return;
+        event.preventDefault();
+        searchEl.focus();
+        searchEl.select();
     });
 
     refresh();

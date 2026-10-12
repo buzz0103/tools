@@ -104,7 +104,7 @@ function addBookmark(rawUrl, rawAuthor) {
         const urls = sheet.getDataRange().getValues().slice(1).map((row) => String(row[2]).replace(/\/$/, ''));
         if (urls.includes(url.replace(/\/$/, ''))) throw new Error('이미 등록된 링크예요.');
 
-        const meta = fetchMeta(url);
+        const meta = fetchYoutubeMeta(url) || fetchMeta(url);
         const item = {
             id: Utilities.getUuid().slice(0, 8),
             createdAt: new Date().toISOString(),
@@ -183,6 +183,24 @@ function fetchMeta(url) {
         description: (getMeta('og:description') || getMeta('description')).replace(/\s+/g, ' ').trim().slice(0, 300),
         metaKeywords: getMeta('keywords')
     };
+}
+
+// 유튜브는 페이지 대신 oEmbed로 영상 제목·채널명을 받아요 (페이지는 동의 화면이 와서 제목이 틀려요)
+function fetchYoutubeMeta(url) {
+    if (!/^https?:\/\/(?:[\w-]+\.)?(?:youtube\.com|youtu\.be)\//i.test(url)) return null;
+    try {
+        const res = UrlFetchApp.fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(url), { muteHttpExceptions: true });
+        if (res.getResponseCode() >= 400) return null;
+        const data = JSON.parse(res.getContentText());
+        if (!data.title) return null;
+        return {
+            title: String(data.title).replace(/\s+/g, ' ').trim().slice(0, 200),
+            description: data.author_name ? 'YouTube · ' + data.author_name : '',
+            metaKeywords: data.author_name || ''
+        };
+    } catch (err) {
+        return null;
+    }
 }
 
 function decodeEntities(text) {

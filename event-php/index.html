@@ -212,6 +212,9 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
                     <label class="field">이미지 주소 (img src 앞부분)
                         <input type="text" id="imgUrl" class="mono">
                     </label>
+                    <label class="field">사이트 주소 (게시판용 URL 앞부분)
+                        <input type="text" id="siteUrl" class="mono">
+                    </label>
                     <label class="field">ZIP 안 PHP 폴더
                         <input type="text" id="phpDir" class="mono">
                     </label>
@@ -290,6 +293,7 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
 <script>
 // ===== 기본값 =====
 const DEFAULT_SETTINGS = {
+    siteUrl: 'https://www.ybmedu.com/',
     imgUrl: '/resource/images/event/{yyyy}/',
     phpDir: 'view/design/event/{yyyy}/',
     imgDir: 'resource/images/event/{yyyy}/',
@@ -302,9 +306,9 @@ const DEFAULT_SETTINGS = {
 };
 const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS);
 // [PHP 이름, 이미지 이름, 대체텍스트, 여러 장 설정]
-// 여러 장 설정: 장마다 { link: 링크를 걸지 } — main은 4장이고 2번째 이미지에 링크
+// 여러 장 설정: 장마다 { link: 링크를 걸지 } — main은 3장이고 2번째 이미지에 링크
 const DEFAULT_ITEMS = [
-    ['main', 'main', '', [{}, { link: true }, {}, {}]],
+    ['main', 'main', '', [{}, { link: true }, {}]],
     ['early', 'early', '조기 등록 혜택'],
     ['10per', '10per', '대학생 수강료 10% 할인'],
     ['20per', 'uni20per', '대학교 신입생 수강료 20% 할인'],
@@ -424,6 +428,19 @@ function buildPhp(it) {
         return fillTpl(linkTpl, { href: escapeAttr(sl.href.trim()), target: sl.blank ? ' target="_blank"' : '', img });
     });
     return fillTpl(template, { images: lines.join('\n') });
+}
+
+// 게시판에 남길 이벤트 이름과 주소 목록 (메모장용, CRLF)
+function getPageUrl(it) {
+    const site = state.settings.siteUrl.trim().replace(/\/+$/, '');
+    const path = joinPath(state.settings.phpDir, getPhpName(it));
+    return site ? site + '/' + path : path;
+}
+function getItemTitle(it) {
+    return it.alt.trim() || (it.images.find((sl) => sl.alt.trim()) || { alt: '' }).alt.trim() || it.phpKey;
+}
+function buildUrlList(items) {
+    return items.map((it) => `${getItemTitle(it)}\r\n${getPageUrl(it)}`).join('\r\n\r\n') + '\r\n';
 }
 
 // ===== 검사 =====
@@ -799,12 +816,14 @@ function refreshAll() {
 // ===== 3. 확인·저장 =====
 function getOutputFiles() {
     const out = [];
-    state.items.filter((it) => it.on && it.phpKey).forEach((it) => {
+    const items = state.items.filter((it) => it.on && it.phpKey);
+    items.forEach((it) => {
         out.push({ type: 'php', path: joinPath(state.settings.phpDir, getPhpName(it)), content: buildPhp(it), item: it });
         it.images.forEach((sl, idx) => {
             if (sl.file) out.push({ type: 'img', path: joinPath(state.settings.imgDir, getImgName(it, idx)), file: sl.file, slot: sl, item: it });
         });
     });
+    if (items.length) out.push({ type: 'txt', path: `url_${getDateTokens().yymm}.txt`, content: buildUrlList(items) });
     return out;
 }
 function renderReview() {
@@ -853,7 +872,7 @@ function renderReview() {
     const box = document.getElementById('codebox');
     const f = files[state.selectedFile];
     if (!f) { box.innerHTML = '<p class="hint">만들어질 파일이 없어요.</p>'; return; }
-    if (f.type === 'php') {
+    if (f.type !== 'img') {
         box.innerHTML = `<div class="head"><span class="mono hint">${escapeHtml(f.path)}</span>
             <span class="toolbar_btns"><button type="button" class="btn small" id="copyCode">코드 복사</button>
             <button type="button" class="btn small outline" id="dlOne">이 파일 받기</button></span></div>
@@ -895,10 +914,14 @@ function downloadBlob(blob, name) {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
-// 파일 하나만 받기 (PHP는 BOM 없는 UTF-8)
+// 파일 하나만 받기 (PHP는 BOM 없는 UTF-8, 메모장 파일은 BOM 붙인 UTF-8)
+function getFileData(f) {
+    if (f.type === 'img') return f.file;
+    return f.type === 'txt' ? '\uFEFF' + f.content : f.content;
+}
 function downloadOne(f) {
     const name = f.path.split('/').pop();
-    const blob = f.type === 'php' ? new Blob([f.content], { type: 'text/plain;charset=utf-8' }) : f.file;
+    const blob = f.type === 'img' ? f.file : new Blob([getFileData(f)], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, name);
     showToast(`${name} 저장했어요`);
 }
@@ -915,7 +938,7 @@ async function saveZip() {
     btn.disabled = true; btn.textContent = '만드는 중…';
     try {
         const zip = new JSZip();
-        getOutputFiles().forEach((f) => zip.file(f.path, f.type === 'php' ? f.content : f.file));
+        getOutputFiles().forEach((f) => zip.file(f.path, getFileData(f)));
         const blob = await zip.generateAsync({ type: 'blob' });
         const name = `event_${getDateTokens().yymm}.zip`;
         downloadBlob(blob, name);

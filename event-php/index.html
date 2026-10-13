@@ -241,6 +241,9 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
                     <label class="field">링크 걸 때 ({{href}}, {{target}}, {{img}})
                         <input type="text" id="linkTpl" class="mono" spellcheck="false">
                     </label>
+                    <label class="field">여러 장일 때 한 장씩 감싸기 ({{img}})
+                        <input type="text" id="multiWrapTpl" class="mono" spellcheck="false">
+                    </label>
                 </div>
                 <div><button type="button" class="btn" id="resetSettings">기본값으로 되돌리기</button></div>
             </div>
@@ -302,7 +305,8 @@ const DEFAULT_SETTINGS = {
     multiSuffix: '_{nn}',
     template: '<div class="event_detail_page" >\n{{images}}\n</div>',
     imgTpl: '<img src="{{src}}" alt="{{alt}}" class="align_center" />',
-    linkTpl: '<a href="{{href}}"{{target}}>{{img}}</a>'
+    linkTpl: '<a href="{{href}}"{{target}}>{{img}}</a>',
+    multiWrapTpl: '<div>{{img}}</div>'
 };
 const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS);
 // [PHP 이름, 이미지 이름, 대체텍스트, 여러 장 설정]
@@ -420,12 +424,14 @@ function fillTpl(tpl, values) {
     return Object.entries(values).reduce((out, [k, v]) => out.split(`{{${k}}}`).join(v), tpl);
 }
 function buildPhp(it) {
-    const { template, imgTpl, linkTpl } = state.settings;
+    const { template, imgTpl, linkTpl, multiWrapTpl } = state.settings;
     const lines = it.images.map((sl, i) => {
         const alt = (sl.alt.trim() || it.alt.trim());
         const img = fillTpl(imgTpl, { src: getImgSrc(it, i), alt: escapeAttr(alt) });
-        if (!sl.link || !sl.href.trim()) return img;
-        return fillTpl(linkTpl, { href: escapeAttr(sl.href.trim()), target: sl.blank ? ' target="_blank"' : '', img });
+        const line = !sl.link || !sl.href.trim() ? img
+            : fillTpl(linkTpl, { href: escapeAttr(sl.href.trim()), target: sl.blank ? ' target="_blank"' : '', img });
+        // 여러 장이면 이미지가 옆으로 붙지 않게 한 장씩 감싸요
+        return it.multi ? fillTpl(multiWrapTpl, { img: line }) : line;
     });
     return fillTpl(template, { images: lines.join('\n') });
 }

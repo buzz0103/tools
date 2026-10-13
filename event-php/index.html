@@ -120,6 +120,8 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
 .slot_check input {width: 16px; height: 16px;}
 .slot_link {display: grid; gap: 6px;}
 .slot_link[hidden] {display: none;}
+.link_box {display: grid; justify-items: start; gap: 6px;}
+.link_box .slot_link {width: 100%;}
 .slot input[type="text"] {height: 32px; padding: 0 8px; font-size: 12px;}
 .slot_add {place-items: center; min-height: 120px; border-style: dashed; border-color: #DFDFDF; font-size: 13px; font-weight: 500; color: #777777;}
 .slot_add:hover {border-color: #1775F0; color: #1775F0;}
@@ -668,6 +670,12 @@ function renderItems() {
                 <button type="button" class="add_slot">+ 여러 장으로</button>`;
             bindThumb(col.querySelector('.thumb'), it, 0);
             bindDropTarget(row, it, 0);
+            // 한 장 항목도 필요할 때만 링크를 걸 수 있어요 (기본은 꺼짐)
+            const linkBox = document.createElement('div');
+            linkBox.className = 'link_box';
+            linkBox.innerHTML = getLinkHtml(it, 0, '이미지');
+            row.querySelector('.meta').before(linkBox);
+            bindSlotInputs(linkBox, it, it.images[0]);
             col.querySelector('.add_slot').addEventListener('click', () => {
                 it.multi = true; it.images.push(createSlot()); renderItems(); saveState();
             });
@@ -682,6 +690,27 @@ function renderItems() {
     });
     updateCount();
 }
+// 링크 걸기 체크 + 주소·새 창 (체크했을 때만 보여요)
+function getLinkHtml(it, idx, label) {
+    return `<label class="slot_check"><input type="checkbox" id="link-${it.id}-${idx}" data-s="link"> 링크 걸기</label>
+            <div class="slot_link" ${it.images[idx].link ? '' : 'hidden'}>
+                <input type="text" id="href-${it.id}-${idx}" class="mono" data-s="href" placeholder="https://" spellcheck="false" aria-label="${label} 링크 주소">
+                <label class="slot_check"><input type="checkbox" id="blank-${it.id}-${idx}" data-s="blank"> 새 창으로 열기</label>
+            </div>`;
+}
+function bindSlotInputs(box, it, sl) {
+    box.querySelectorAll('[data-s]').forEach((input) => {
+        const k = input.dataset.s;
+        if (input.type === 'checkbox') input.checked = sl[k]; else input.value = sl[k];
+        input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
+            sl[k] = input.type === 'checkbox' ? input.checked : input.value;
+            if (k === 'link') box.querySelector('.slot_link').hidden = !sl.link;
+            if (k === 'link' && sl.link) box.querySelector('[data-s="href"]').focus();
+            updateItemRow(it);
+            saveState();
+        });
+    });
+}
 // 여러 장 항목: 장마다 썸네일 · 링크 · alt
 function renderSlots(it) {
     const wrap = document.createElement('div');
@@ -695,23 +724,9 @@ function renderSlots(it) {
                 <button type="button" class="x x_small" aria-label="이미지 ${idx + 1} 칸 삭제" title="이 칸 삭제">×</button></div>
             <div class="thumb" tabindex="0" role="button" aria-label="이미지 ${idx + 1} 선택"></div>
             <div class="slot_name mono"></div>
-            <label class="slot_check"><input type="checkbox" id="link-${it.id}-${idx}" data-s="link"> 링크 걸기</label>
-            <div class="slot_link" ${sl.link ? '' : 'hidden'}>
-                <input type="text" id="href-${it.id}-${idx}" class="mono" data-s="href" placeholder="https://" spellcheck="false" aria-label="이미지 ${idx + 1} 링크 주소">
-                <label class="slot_check"><input type="checkbox" id="blank-${it.id}-${idx}" data-s="blank"> 새 창으로 열기</label>
-            </div>
+            ${getLinkHtml(it, idx, `이미지 ${idx + 1}`)}
             <input type="text" id="salt-${it.id}-${idx}" data-s="alt" placeholder="alt (비우면 위 alt)" aria-label="이미지 ${idx + 1} 대체텍스트">`;
-        card.querySelectorAll('[data-s]').forEach((input) => {
-            const k = input.dataset.s;
-            if (input.type === 'checkbox') input.checked = sl[k]; else input.value = sl[k];
-            input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
-                sl[k] = input.type === 'checkbox' ? input.checked : input.value;
-                if (k === 'link') card.querySelector('.slot_link').hidden = !sl.link;
-                if (k === 'link' && sl.link) card.querySelector('[data-s="href"]').focus();
-                updateItemRow(it);
-                saveState();
-            });
-        });
+        bindSlotInputs(card, it, sl);
         bindThumb(card.querySelector('.thumb'), it, idx);
         bindDropTarget(card, it, idx);
         card.querySelector('.x_small').addEventListener('click', () => {

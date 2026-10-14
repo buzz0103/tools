@@ -72,7 +72,9 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
 .adv summary::-webkit-details-marker {display: none;}
 .adv summary::after {content: ""; width: 8px; height: 8px; margin: -4px 6px 0 auto; border-right: 1.8px solid #949494; border-bottom: 1.8px solid #949494; transform: rotate(45deg); transition: transform .2s ease;}
 .adv[open] summary::after {margin-top: 4px; transform: rotate(-135deg);}
-.adv_body {display: grid; gap: 16px; padding: 0 0 24px;}
+.adv_body {display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; padding: 0 0 24px;}
+/* 긴 코드 줄이 있어도 칸을 넘지 않고 안에서 가로 스크롤돼요 */
+.adv_body > * {min-width: 0;}
 
 /* ---- 이미지 일괄 드롭 ---- */
 .drop {display: grid; gap: 4px; padding: 28px 16px; border: 1px dashed #DFDFDF; border-radius: 7px; text-align: center; color: #777777; background: #FFFFFF; cursor: pointer; transition: border-color .2s ease, color .2s ease;}

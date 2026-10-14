@@ -10,12 +10,30 @@
  *  - 회사 메일로 인증번호 6자리를 보내고, 맞히면 로그인 토큰(SESSION_DAYS일 유효)을 줘요.
  *  - 토큰은 스크립트 속성에 해시로만 저장해요.
  *
- * 시트 열: id | createdAt | url | title | description | keywords | author | email
- * 대표이미지는 저장하지 않아요. 화면에서 URL로 캡쳐 이미지를 불러와 보여줘요.
+ * 시트 열: id | createdAt | url | title | description | keywords | author | email | image | space
+ * image: 페이지의 대표이미지(og:image) 주소. 비어 있으면 화면에서 캡쳐를 불러오고,
+ *        'none'이면 사이트가 봇 접근을 막은 것이라 캡쳐 대신 파비콘을 보여줘요.
+ * space: 'use'(바로 쓰기) 또는 'learn'(보고 배우기). 비어 있으면 주소를 보고 정해요.
  */
 
 const SHEET_NAME = 'bookmarks';
-const HEADERS = ['id', 'createdAt', 'url', 'title', 'description', 'keywords', 'author', 'email'];
+const HEADERS = ['id', 'createdAt', 'url', 'title', 'description', 'keywords', 'author', 'email', 'image', 'space'];
+
+// 공간: 바로 쓰기(use) / 보고 배우기(learn)
+const SPACES = ['use', 'learn'];
+// 이 사이트들은 처음부터 '보고 배우기'로 넣어요 (index.html 의 REFERENCE_HOSTS 와 같이 고쳐 주세요)
+const REFERENCE_HOSTS = ['uiverse.io', 'dribbble.com', 'behance.net', 'awwwards.com', 'codepen.io', 'mobbin.com',
+    'pinterest.com', 'pinterest.co.kr', 'land-book.com', 'godly.website', 'siteinspire.com', 'cssdesignawards.com',
+    'onepagelove.com', 'lapa.ninja', 'httpster.net', 'refero.design', 'pageflows.com', 'uibowl.io', 'saasframe.io'];
+
+function guessSpace(url) {
+    const host = new URL_(url).host.toLowerCase();
+    return REFERENCE_HOSTS.some((ref) => host === ref || host.endsWith('.' + ref)) ? 'learn' : 'use';
+}
+
+function normalizeSpace(rawSpace, url) {
+    return SPACES.includes(rawSpace) ? rawSpace : guessSpace(url);
+}
 const KEYWORD_LIMIT = 5;
 
 // 회사 메일 인증
@@ -53,8 +71,8 @@ function getSheet() {
         sheet.appendRow(HEADERS);
         sheet.setFrozenRows(1);
     } else if (sheet.getRange(1, HEADERS.length).getValue() !== HEADERS[HEADERS.length - 1]) {
-        // 인증 기능 전에 만든 시트에는 email 열 머리글을 채워요
-        sheet.getRange(1, HEADERS.length).setValue(HEADERS[HEADERS.length - 1]);
+        // 예전에 만든 시트에는 새로 생긴 열(email, image, space) 머리글을 채워요
+        sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     }
     return sheet;
 }
@@ -78,7 +96,8 @@ function doPost(e) {
         const email = getSessionEmail(body.token);
         if (!email) return sendJson({ ok: false, code: 'AUTH', message: '로그인이 만료됐어요. 회사 메일로 다시 인증해 주세요.' });
         if (body.action === 'list') return sendJson({ ok: true, items: listBookmarks(email) });
-        if (body.action === 'add') return sendJson({ ok: true, item: addBookmark(body.url, body.author, email) });
+        if (body.action === 'add') return sendJson({ ok: true, item: addBookmark(body.url, body.author, email, body.space) });
+        if (body.action === 'move') return sendJson({ ok: true, item: moveBookmark(body.id, body.space, email) });
         if (body.action === 'delete') return sendJson({ ok: true, id: deleteBookmark(body.id, email) });
         if (body.action === 'logout') return sendJson({ ok: true, done: endSession(body.token) });
         return sendJson({ ok: false, message: '알 수 없는 요청이에요.' });
@@ -185,7 +204,9 @@ function listBookmarks(email) {
             description: String(row[4]),
             keywords: String(row[5]).split(',').map((k) => k.trim()).filter(Boolean),
             author: String(row[6]),
-            mine: String(row[7] || '').toLowerCase() === email
+            mine: String(row[7] || '').toLowerCase() === email,
+            image: String(row[8] || ''),
+            space: normalizeSpace(String(row[9] || ''), String(row[2]))
         }))
         .reverse();
 }
@@ -197,7 +218,7 @@ function normalizeUrl(rawUrl) {
     return url;
 }
 
-function addBookmark(rawUrl, rawAuthor, email) {
+function addBookmark(rawUrl, rawAuthor, email, rawSpace) {
     const url = normalizeUrl(rawUrl);
     const author = String(rawAuthor || '').trim().slice(0, 20);
     if (!author) throw new Error('작성자를 입력해 주세요.');
@@ -218,10 +239,32 @@ function addBookmark(rawUrl, rawAuthor, email) {
             description: meta.description,
             keywords: extractKeywords(meta, url),
             author: author,
-            mine: true
+            mine: true,
+            image: meta.blocked ? 'none' : (meta.image || ''),
+            space: normalizeSpace(rawSpace, url)
         };
-        sheet.appendRow([item.id, item.createdAt, item.url, item.title, item.description, item.keywords.join(', '), item.author, email]);
+        sheet.appendRow([item.id, item.createdAt, item.url, item.title, item.description, item.keywords.join(', '), item.author, email, item.image, item.space]);
         return item;
+    } finally {
+        lock.releaseLock();
+    }
+}
+
+// 등록한 사람만 다른 공간으로 옮길 수 있어요
+function moveBookmark(id, rawSpace, email) {
+    if (!SPACES.includes(rawSpace)) throw new Error('옮길 공간을 골라 주세요.');
+    const lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+        const sheet = getSheet();
+        const rows = sheet.getDataRange().getValues();
+        for (let i = 1; i < rows.length; i++) {
+            if (String(rows[i][0]) !== String(id)) continue;
+            if (String(rows[i][7] || '').toLowerCase() !== email) throw new Error('등록한 사람만 옮길 수 있어요.');
+            sheet.getRange(i + 1, HEADERS.indexOf('space') + 1).setValue(rawSpace);
+            return { id: String(id), space: rawSpace };
+        }
+        throw new Error('이미 지워진 북마크예요.');
     } finally {
         lock.releaseLock();
     }
@@ -246,6 +289,18 @@ function deleteBookmark(id, email) {
     }
 }
 
+// og:image가 상대 경로(/img/og.png, //cdn...)일 때 페이지 주소 기준으로 바꿔요
+function absoluteUrl(src, base) {
+    src = String(src || '').trim();
+    if (!src) return '';
+    if (/^https?:\/\//i.test(src)) return src.slice(0, 500);
+    const origin = (String(base).match(/^(https?:)\/\/[^/?#]+/i) || [])[0];
+    if (!origin) return '';
+    if (src.indexOf('//') === 0) return (origin.split('//')[0] + src).slice(0, 500);
+    if (src.charAt(0) === '/') return (origin + src).slice(0, 500);
+    return (String(base).replace(/[?#].*$/, '').replace(/[^/]*$/, '') + src).slice(0, 500);
+}
+
 // Apps Script에는 URL 객체가 없어서 호스트만 뽑는 작은 도우미
 function URL_(url) {
     const match = String(url).match(/^https?:\/\/([^/?#]+)/i);
@@ -254,7 +309,8 @@ function URL_(url) {
 
 // 페이지 HTML에서 제목·설명·키워드 메타 읽기
 function fetchMeta(url) {
-    const empty = { title: '', description: '', metaKeywords: '' };
+    const empty = { title: '', description: '', metaKeywords: '', image: '', blocked: false };
+    const blocked = Object.assign({}, empty, { blocked: true });
     let html = '';
     try {
         const res = UrlFetchApp.fetch(url, {
@@ -262,7 +318,10 @@ function fetchMeta(url) {
             followRedirects: true,
             headers: { 'User-Agent': 'Mozilla/5.0 (bookmark-bot)', 'Accept-Language': 'ko,en;q=0.8' }
         });
-        if (res.getResponseCode() >= 400) return empty;
+        // 403·429·503은 대부분 Cloudflare 같은 봇 차단이에요. 캡쳐 서비스도 똑같이 막혀요
+        const code = res.getResponseCode();
+        if ([401, 403, 429, 503].includes(code)) return blocked;
+        if (code >= 400) return empty;
         const blob = res.getBlob();
         // 문자셋: 응답 헤더 → <meta charset> → UTF-8
         const contentType = String(res.getHeaders()['Content-Type'] || '');
@@ -283,11 +342,15 @@ function fetchMeta(url) {
         return match ? decodeEntities(match[1]) : '';
     };
     const titleTag = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '';
+    // 200으로 와도 차단·확인 화면인 경우가 있어요
+    if (/Just a moment|Attention Required|you have been blocked|Access denied|Verifying you are human/i.test(titleTag)) return blocked;
 
     return {
         title: (getMeta('og:title') || decodeEntities(titleTag)).replace(/\s+/g, ' ').trim().slice(0, 200),
         description: (getMeta('og:description') || getMeta('description')).replace(/\s+/g, ' ').trim().slice(0, 300),
-        metaKeywords: getMeta('keywords')
+        metaKeywords: getMeta('keywords'),
+        image: absoluteUrl(getMeta('og:image') || getMeta('twitter:image'), url),
+        blocked: false
     };
 }
 

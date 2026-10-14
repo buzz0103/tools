@@ -53,10 +53,11 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .app[hidden] {display: none;}
 
 /* ---- 등록 폼 ---- */
-.add {display: grid; gap: 12px; padding: 24px; border-radius: 12px; background: #FFFFFF;}
+.add {display: grid; gap: 8px; padding: 20px 24px; border-radius: 12px; background: #FFFFFF;}
 .add_title {margin: 0; font-size: 18px; line-height: 24px; font-weight: 700;}
 .add_row {display: grid; grid-template-columns: minmax(0, 1fr) 180px auto; gap: 8px;}
 .add_hint {margin: 0; font-size: 12px; line-height: 18px; color: #949494;}
+.add_status:empty {display: none;}
 .add_status {min-height: 18px; margin: 0; font-size: 12px; line-height: 18px; font-weight: 500; color: #1775F0;}
 .add_status-error {color: #E8332E;}
 .input {display: block; width: 100%; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid transparent; border-radius: 5px; font-family: inherit; font-size: 14px; color: #000000; background: #F5F5F5; transition: border-color .15s ease;}
@@ -70,12 +71,17 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .btn:active:not(:disabled) {opacity: .5;}
 .btn:disabled {border-color: #E4E4E4; color: #949494; background: #E4E4E4; cursor: default;}
 
-/* ---- 검색 ---- */
-.toolbar {display: grid; gap: 12px;}
-.toolbar_top {display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;}
-.toolbar_count {margin: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: #777777; font-variant-numeric: tabular-nums;}
-.toolbar_search {flex: 0 1 320px; min-width: 0;}
-.toolbar_search .input {background: #FFFFFF;}
+/* ---- 공간 탭 + 검색 (한 줄) ---- */
+.toolbar {display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; border-bottom: 1px solid #DFDFDF;}
+.tabs {display: flex; gap: 24px;}
+.tab {position: relative; padding: 8px 0 12px; border: 0; font-family: inherit; font-size: 16px; line-height: 24px; font-weight: 700; color: #949494; background: transparent; cursor: pointer; transition: opacity .15s ease;}
+.tab:hover {opacity: .7;}
+.tab small {margin-left: 4px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;}
+.tab[aria-selected="true"] {color: #000000;}
+.tab[aria-selected="true"] small {color: #1775F0;}
+.tab[aria-selected="true"]::after {content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #000000;}
+.toolbar_search {flex: 0 1 240px; min-width: 0; padding-bottom: 8px;}
+.toolbar_search .input {height: 36px; background: #FFFFFF;}
 .card_title mark {border-radius: 2px; color: inherit; background: #FFE58A;}
 
 /* ---- 북마크 카드 ---- */
@@ -88,6 +94,7 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .card_thumb img {display: block; width: 100%; height: 100%; object-fit: cover; object-position: top;}
 .card_thumb-loading::after {content: "캡쳐 중…"; position: absolute; right: 8px; bottom: 8px; padding: 2px 6px; border-radius: 5px; font-size: 11px; line-height: 16px; color: #FFFFFF; background: rgba(0, 0, 0, .55);}
 .card_fallback {position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 600; color: #777777;}
+.card_fallback img {width: 32px; height: 32px; border-radius: 6px; object-fit: contain;}
 .card_body {display: flex; flex: 1; flex-direction: column; gap: 6px; padding: 16px 16px 0;}
 .card_title {display: -webkit-box; margin: 0; overflow: hidden; font-size: 15px; line-height: 21px; font-weight: 700; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 2;}
 .card_host {display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; line-height: 16px; color: #777777;}
@@ -99,6 +106,12 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
 .card_author {font-weight: 600; color: #555555;}
 .card_del {margin-left: auto; padding: 4px 6px; border: 0; border-radius: 5px; font-family: inherit; font-size: 12px; color: #949494; background: transparent; cursor: pointer; transition: opacity .15s ease;}
 .card_del:hover {opacity: .7; color: #E8332E;}
+.card_move, .card_del {opacity: 0;}
+.card:hover .card_move, .card:hover .card_del, .card:focus-within .card_move, .card:focus-within .card_del {opacity: 1;}
+@media (hover: none) {.card_move, .card_del {opacity: 1;}}
+.card_move {margin-left: auto; padding: 4px 6px; border: 0; border-radius: 5px; font-family: inherit; font-size: 12px; color: #949494; background: transparent; cursor: pointer; transition: opacity .15s ease;}
+.card_move:hover {opacity: .7; color: #1775F0;}
+.card_move + .card_del {margin-left: 0;}
 
 .empty {padding: 48px 16px; border-radius: 12px; text-align: center; color: #949494; background: #FFFFFF;}
 .empty[hidden] {display: none;}
@@ -110,7 +123,8 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
     .add {padding: 16px;}
     .add_row {grid-template-columns: 1fr 1fr;}
     .add_row .input-url {grid-column: 1 / -1;}
-    .toolbar_search {flex-basis: 100%;}
+    .toolbar_search {flex-basis: 100%; order: -1; padding-bottom: 0;}
+    .tabs {gap: 16px;}
     .list {grid-template-columns: 1fr;}
 }
 @media (prefers-reduced-motion: reduce) {
@@ -163,21 +177,23 @@ body {margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard
             <input class="input" id="bmAuthor" name="author" type="text" maxlength="20" placeholder="작성자" autocomplete="name" required data-add-author>
             <button class="btn" type="submit" data-add-submit>등록</button>
         </form>
-        <p class="add_hint">URL만 넣으면 제목은 자동으로 가져오고, 섬네일은 페이지를 캡쳐해서 보여줘요. 작성자 이름은 고쳐 쓸 수 있고, 내가 올린 카드에만 삭제 버튼이 보여요.</p>
+        <p class="add_hint">지금 보고 있는 탭에 등록돼요. 제목과 섬네일은 자동으로 붙어요.</p>
         <p class="add_status" data-add-status role="status" aria-live="polite"></p>
     </section>
 
-    <section class="toolbar" aria-label="북마크 찾기">
-        <div class="toolbar_top">
-            <p class="toolbar_count" data-count aria-live="polite"></p>
-            <div class="toolbar_search">
-                <label class="sr-only" for="bmSearch">북마크 검색</label>
-                <input class="input" id="bmSearch" type="search" placeholder="제목·사이트·작성자로 검색" autocomplete="off" data-search>
-            </div>
+    <div class="toolbar">
+        <div class="tabs" role="tablist" aria-label="공간">
+            <button class="tab" type="button" role="tab" id="tab-use" aria-controls="bmList" data-tab="use">바로 쓰기<small data-tab-count="use"></small></button>
+            <button class="tab" type="button" role="tab" id="tab-learn" aria-controls="bmList" data-tab="learn">보고 배우기<small data-tab-count="learn"></small></button>
         </div>
-    </section>
+        <div class="toolbar_search">
+            <label class="sr-only" for="bmSearch">북마크 검색</label>
+            <input class="input" id="bmSearch" type="search" placeholder="검색" autocomplete="off" data-search>
+        </div>
+        <p class="sr-only" data-count aria-live="polite"></p>
+    </div>
 
-    <ul class="list" data-list></ul>
+    <ul class="list" id="bmList" role="tabpanel" data-list></ul>
     <p class="empty" data-empty hidden>아직 북마크가 없어요.</p>
     </div>
 </main>
@@ -190,8 +206,16 @@ const LOCAL_KEY = 'bookmark.items';
 const AUTHOR_KEY = 'bookmark.author';
 const SESSION_KEY = 'bookmark.session';
 const THUMB_RETRY = 5;
+const SPACE_KEY = 'bookmark.space';
 
-const state = {items: [], query: ''};
+// 공간: 바로 쓰기(use) / 보고 배우기(learn)
+const SPACE_NAMES = {use: '바로 쓰기', learn: '보고 배우기'};
+// 이 사이트들은 '보고 배우기'가 미리 골라져요 (apps-script.gs 의 REFERENCE_HOSTS 와 같이 고쳐 주세요)
+const REFERENCE_HOSTS = ['uiverse.io', 'dribbble.com', 'behance.net', 'awwwards.com', 'codepen.io', 'mobbin.com',
+    'pinterest.com', 'pinterest.co.kr', 'land-book.com', 'godly.website', 'siteinspire.com', 'cssdesignawards.com',
+    'onepagelove.com', 'lapa.ninja', 'httpster.net', 'refero.design', 'pageflows.com', 'uibowl.io', 'saasframe.io'];
+
+const state = {items: [], query: '', space: 'use'};
 
 // 서버가 로그인 만료를 알릴 때 쓰는 오류
 class AuthError extends Error {}
@@ -231,6 +255,15 @@ function normalizeUrl(raw) {
     } catch (err) {
         return '';
     }
+}
+
+function guessSpace(url) {
+    const host = getHost(url).toLowerCase();
+    return REFERENCE_HOSTS.some((ref) => host === ref || host.endsWith(`.${ref}`)) ? 'learn' : 'use';
+}
+
+function spaceOf(item) {
+    return SPACE_NAMES[item.space] ? item.space : guessSpace(item.url);
 }
 
 function formatDate(iso) {
@@ -290,8 +323,8 @@ async function loadItems() {
     return (await requestApi({action: 'list'})).items;
 }
 
-async function addItem(url, author) {
-    if (API_URL) return (await requestApi({action: 'add', url, author})).item;
+async function addItem(url, author, space) {
+    if (API_URL) return (await requestApi({action: 'add', url, author, space})).item;
 
     // 체험 모드: 페이지를 읽을 수 없어 주소에서 제목·키워드를 만들어요
     const items = readStorage(LOCAL_KEY, []);
@@ -303,10 +336,19 @@ async function addItem(url, author) {
         title: getHost(url),
         description: '',
         keywords: extractLocalKeywords(url),
-        author
+        author,
+        space
     };
     writeStorage(LOCAL_KEY, [item, ...items]);
     return item;
+}
+
+async function moveItem(id, space) {
+    if (API_URL) {
+        await requestApi({action: 'move', id, space});
+        return;
+    }
+    writeStorage(LOCAL_KEY, readStorage(LOCAL_KEY, []).map((item) => (item.id === id ? {...item, space} : item)));
 }
 
 async function deleteItem(id) {
@@ -357,20 +399,48 @@ function createThumb(item) {
         return thumb;
     }
 
+    // 1) 봇 차단 사이트: 캡쳐해도 차단 화면만 찍혀서 바로 파비콘으로 보여줘요
+    //    (예전에 등록한 글은 제목을 못 가져온 경우 = 페이지를 못 읽은 경우로 판단해요)
+    const unreadable = !item.image && !item.description && (!item.title || item.title === getHost(item.url));
+    if (item.image === 'none' || unreadable) {
+        showFallback();
+        return thumb;
+    }
+
+    // 2) 대표이미지(og:image)가 있으면 그걸 쓰고, 못 불러오면 캡쳐로 넘어가요
+    if (/^https?:\/\//i.test(item.image || '')) {
+        const onImage = () => thumb.classList.remove('card_thumb-loading');
+        img.addEventListener('load', onImage);
+        img.addEventListener('error', () => {
+            img.removeEventListener('load', onImage);
+            listenCapture();
+            img.src = getThumbUrl(item.url, 0);
+        }, {once: true});
+        img.src = item.image;
+        return thumb;
+    }
+
+    // 3) 둘 다 없으면 캡쳐
+    listenCapture();
+    img.src = getThumbUrl(item.url, 0);
+    return thumb;
+
     // mShots는 처음 요청 때 '생성 중' 이미지를 주므로, 실제 캡쳐(640px)가 올 때까지 몇 번 다시 불러요
-    img.addEventListener('load', () => {
-        if (img.naturalWidth === 640) {
-            thumb.classList.remove('card_thumb-loading');
-            return;
-        }
-        if (attempt >= THUMB_RETRY) {
-            showFallback();
-            return;
-        }
-        attempt += 1;
-        setTimeout(() => { img.src = getThumbUrl(item.url, attempt); }, 3000 * attempt);
-    });
-    img.addEventListener('error', showFallback);
+    function listenCapture() {
+        img.addEventListener('load', () => {
+            if (img.naturalWidth === 640) {
+                thumb.classList.remove('card_thumb-loading');
+                return;
+            }
+            if (attempt >= THUMB_RETRY) {
+                showFallback();
+                return;
+            }
+            attempt += 1;
+            setTimeout(() => { img.src = getThumbUrl(item.url, attempt); }, 3000 * attempt);
+        });
+        img.addEventListener('error', showFallback);
+    }
 
     function showFallback() {
         thumb.classList.remove('card_thumb-loading');
@@ -387,9 +457,6 @@ function createThumb(item) {
         box.append(icon, host);
         thumb.appendChild(box);
     }
-
-    img.src = getThumbUrl(item.url, 0);
-    return thumb;
 }
 
 function createCard(item, myName) {
@@ -439,6 +506,17 @@ function createCard(item, myName) {
     foot.append(author, date);
     // 내가 올린 글(서버가 회사 메일로 확인)에만 삭제 버튼을 보여줘요. 체험 모드는 작성자 이름으로 비교해요
     if (API_URL ? item.mine : (myName && item.author === myName)) {
+        const target = spaceOf(item) === 'use' ? 'learn' : 'use';
+        const move = document.createElement('button');
+        move.type = 'button';
+        move.className = 'card_move';
+        move.dataset.moveId = item.id;
+        move.dataset.moveTo = target;
+        move.textContent = '옮기기';
+        move.title = `${SPACE_NAMES[target]}로 옮기기`;
+        move.setAttribute('aria-label', `${item.title}을(를) ${SPACE_NAMES[target]}로 옮기기`);
+        foot.appendChild(move);
+
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'card_del';
@@ -493,13 +571,30 @@ function render() {
     const terms = getTerms(state.query);
     const q = terms.length > 0;
     const myName = readStorage(AUTHOR_KEY, '');
-    const matched = q ? state.items.filter((item) => matchesTerms(item, terms)) : state.items;
+    const inSpace = state.items.filter((item) => spaceOf(item) === state.space);
+    const matched = q ? inSpace.filter((item) => matchesTerms(item, terms)) : inSpace;
+
+    document.querySelectorAll('[data-tab]').forEach((tab) => {
+        const on = tab.dataset.tab === state.space;
+        tab.setAttribute('aria-selected', String(on));
+        tab.tabIndex = on ? 0 : -1;
+    });
+    Object.keys(SPACE_NAMES).forEach((space) => {
+        document.querySelector(`[data-tab-count="${space}"]`).textContent = state.items.filter((item) => spaceOf(item) === space).length;
+    });
+    document.querySelector('[data-list]').setAttribute('aria-labelledby', `tab-${state.space}`);
 
     document.querySelector('[data-list]').replaceChildren(...matched.map((item) => createCard(item, myName)));
     const emptyEl = document.querySelector('[data-empty]');
     emptyEl.hidden = matched.length > 0;
-    emptyEl.textContent = state.items.length ? '조건에 맞는 북마크가 없어요.' : '아직 북마크가 없어요. 첫 링크를 등록해 보세요.';
-    document.querySelector('[data-count]').textContent = q ? `검색 결과 ${matched.length}개` : `북마크 ${state.items.length}개`;
+    emptyEl.textContent = inSpace.length ? '조건에 맞는 북마크가 없어요.' : `아직 '${SPACE_NAMES[state.space]}'에 북마크가 없어요. 첫 링크를 등록해 보세요.`;
+    document.querySelector('[data-count]').textContent = q ? `검색 결과 ${matched.length}개` : `북마크 ${inSpace.length}개`;
+}
+
+function setSpace(space) {
+    state.space = SPACE_NAMES[space] ? space : 'use';
+    writeStorage(SPACE_KEY, state.space);
+    render();
 }
 
 function setStatus(message, isError) {
@@ -620,6 +715,8 @@ async function handleSubmit(event) {
     const submitEl = document.querySelector('[data-add-submit]');
     const url = normalizeUrl(urlEl.value);
     const author = authorEl.value.trim();
+    // 지금 보고 있는 탭에 넣어요. 레퍼런스 사이트(REFERENCE_HOSTS)는 늘 '보고 배우기'로 가요
+    const space = guessSpace(url) === 'learn' ? 'learn' : state.space;
 
     if (!url) {
         setStatus('올바른 URL을 입력해 주세요.', true);
@@ -636,10 +733,12 @@ async function handleSubmit(event) {
     submitEl.disabled = true;
     setStatus(API_URL ? '페이지를 읽는 중이에요…' : '등록하는 중이에요…');
     try {
-        const item = await addItem(url, author);
-        // 다른 사람이 등록한 것까지 함께 보이도록 새로 불러와요
+        const item = await addItem(url, author, space);
+        // 등록한 공간 탭으로 옮겨서, 다른 사람이 등록한 것까지 함께 새로 불러와요
+        state.space = spaceOf(item);
+        writeStorage(SPACE_KEY, state.space);
         await refresh();
-        setStatus(`등록했어요: ${item.title}`);
+        setStatus(`'${SPACE_NAMES[state.space]}'에 등록했어요: ${item.title}`);
         urlEl.value = '';
         urlEl.focus();
     } catch (err) {
@@ -651,6 +750,20 @@ async function handleSubmit(event) {
 }
 
 async function handleListClick(event) {
+    const moveBtn = event.target.closest('[data-move-id]');
+    if (moveBtn) {
+        moveBtn.disabled = true;
+        try {
+            await moveItem(moveBtn.dataset.moveId, moveBtn.dataset.moveTo);
+            await refresh();
+            setStatus(`'${SPACE_NAMES[moveBtn.dataset.moveTo]}'로 옮겼어요.`);
+        } catch (err) {
+            moveBtn.disabled = false;
+            if (err instanceof AuthError) showLogin(err.message);
+            else setStatus(err.message || '옮기지 못했어요.', true);
+        }
+        return;
+    }
     const delBtn = event.target.closest('[data-delete-id]');
     if (!delBtn) return;
     if (!window.confirm('이 북마크를 삭제할까요?')) return;
@@ -668,6 +781,17 @@ async function handleListClick(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-notice]').hidden = Boolean(API_URL);
+    state.space = SPACE_NAMES[readStorage(SPACE_KEY, 'use')] ? readStorage(SPACE_KEY, 'use') : 'use';
+
+    const tabs = [...document.querySelectorAll('[data-tab]')];
+    tabs.forEach((tab) => tab.addEventListener('click', () => setSpace(tab.dataset.tab)));
+    // 탭 사이는 ← → 키로 옮겨요
+    document.querySelector('.tabs').addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        const next = tabs[(tabs.findIndex((tab) => tab.dataset.tab === state.space) + 1) % tabs.length];
+        setSpace(next.dataset.tab);
+        next.focus();
+    });
     const authorEl = document.querySelector('[data-add-author]');
     authorEl.value = readStorage(AUTHOR_KEY, '');
     // 작성자 이름을 넣으면 바로 기억해서, 그 이름으로 올린 카드에 삭제 버튼을 보여줘요

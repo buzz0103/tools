@@ -11,8 +11,8 @@
 <style>
 /* 월간 배너 자동 생성기(wallpaper)와 같은 LINE 디자인 기준: 포인트 #1775F0 + Black + Gray, 상태는 opacity(hover 70% / pressed 50%), 모서리 5px(카드 7px·패널 12px) */
 * {box-sizing: border-box;}
-html, body {height: 100%;}
-body {display: flex; flex-direction: column; margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 14px; line-height: 21px; color: #000000; background: #F5F5F5; -webkit-font-smoothing: antialiased;}
+html {height: 100%; scroll-padding-top: 72px;}
+body {display: flex; flex-direction: column; min-height: 100%; margin: 0; font-family: 'LINE Seed KR', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 14px; line-height: 21px; color: #000000; background: #F5F5F5; -webkit-font-smoothing: antialiased;}
 ::selection {background: #CFE2FC; color: #000000;}
 .mono {font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 12px;}
 
@@ -167,6 +167,7 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
     .filelist {max-height: 220px;}
 }
 @media (max-width: 640px) {
+    html {scroll-padding-top: 112px;}
     .item {grid-template-columns: auto 80px minmax(0, 1fr); gap: 12px;}
     .item .x {grid-column: 3; justify-self: end;}
     .thumb {width: 80px; height: 64px;}
@@ -202,13 +203,13 @@ button:focus-visible, .drop:focus-visible, .thumb:focus-visible, summary:focus-v
                 <select id="month"></select>
             </label>
         </div>
-        <div>
-            <p class="section_label">이렇게 만들어져요 (예시)</p>
-            <pre class="preview-path mono" id="namePreview"></pre>
-        </div>
         <details class="adv">
             <summary>고급 설정 · 경로와 PHP 내용</summary>
             <div class="adv_body">
+                <div>
+                    <p class="section_label">이렇게 만들어져요 (예시)</p>
+                    <pre class="preview-path mono" id="namePreview"></pre>
+                </div>
                 <p class="hint"><span class="mono">{yyyy}</span>는 연도 4자리, <span class="mono">{yymm}</span>은 2610, <span class="mono">{yyyymm}</span>은 202610으로 바뀌어요.</p>
                 <div class="grid2">
                     <label class="field">이미지 주소 (img src 앞부분)
@@ -483,9 +484,17 @@ function parseSourceName(fileName) {
     const base = fileName.replace(/\.[^.]+$/, '');
     const m = SOURCE_NAME_RE.exec(base);
     if (!m) return { ruled: false, name: base, text: base.toLowerCase() };
-    const rest = m[2] || '';
-    const text = m[1].toLowerCase() + (/^\d{1,2}$/.test(rest) ? '_' + rest : '');
-    return { ruled: true, name: m[1], text };
+    // main-01 처럼 - 뒤 번호도 장 번호로 봐요
+    const dash = /^(.+?)-(\d{1,2})$/.exec(m[1]);
+    const name = dash ? dash[1] : m[1];
+    const rest = dash ? dash[2] : (m[2] || '');
+    const text = name.toLowerCase() + (/^\d{1,2}$/.test(rest) ? '_' + rest : '');
+    return { ruled: true, name, text };
+}
+// 이름 끝 번호 떼기: main_01, main-1 → { base: 'main', num: 1 } / main → { base: 'main', num: 0 }
+function splitNumber(text) {
+    const m = /^(.+?)[ _-]0*(\d{1,2})$/.exec(text);
+    return m ? { base: m[1], num: Number(m[2]) } : { base: text, num: 0 };
 }
 // 규칙을 지킨 이름은 항목 이름과 똑같을 때만 짝지어요 (earlybird가 early로 들어가지 않게)
 function findExactMatch(name, taken) {
@@ -573,6 +582,12 @@ function handleBulkFiles(fileList) {
     const filledByItem = new Map();
     // 긴 파일명부터 처리해야 짧은 이름에 먼저 빼앗기지 않아요
     const srcNames = new Map(files.map((f) => [f, parseSourceName(f.name)]));
+    // 번호 붙은 이미지(main_01 등)가 같이 오면 번호 없는 main은 빼요
+    const numbered = new Set();
+    srcNames.forEach((src) => { const n = splitNumber(src.text); if (n.num) numbered.add(n.base); });
+    const skipped = files.filter((f) => numbered.has(srcNames.get(f).text));
+    skipped.forEach((f) => files.splice(files.indexOf(f), 1));
+    if (skipped.length) showToast(`${skipped.map((f) => f.name).join(', ')}는 번호 붙은 이미지가 있어서 뺐어요`);
     files.sort((a, b) => srcNames.get(b).text.length - srcNames.get(a).text.length || srcNames.get(a).text.localeCompare(srcNames.get(b).text));
     files.forEach((file) => {
         const src = srcNames.get(file);
